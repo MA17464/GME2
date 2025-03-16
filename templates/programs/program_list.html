@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Programs - GME Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Programs</h1>
+            
+            {% if user.is_gme_staff %}
+                <a href="{% url 'programs:program_create' %}" class="btn-primary">
+                    <span class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        Add New Program
+                    </span>
+                </a>
+            {% endif %}
+        </div>
+        
+        <!-- Filters -->
+        <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+            <h2 class="text-lg font-semibold text-gray-700 mb-3">Filters</h2>
+            <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Program Type</label>
+                    <select name="type" id="type" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="residency" {% if request.GET.type == 'residency' %}selected{% endif %}>Residency</option>
+                        <option value="fellowship" {% if request.GET.type == 'fellowship' %}selected{% endif %}>Fellowship</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="department" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                    <select name="department" id="department" class="form-select">
+                        <option value="">All Departments</option>
+                        {% for code, name in departments %}
+                            <option value="{{ code }}" {% if request.GET.department == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+                
+                <div class="md:col-span-3 flex justify-end">
+                    <button type="submit" class="btn-secondary">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+        
+        {% if programs %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for program in programs %}
+                    <div class="bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div class="{% if program.program_type == 'residency' %}bg-teal-700{% else %}bg-sky-700{% endif %} text-white py-3 px-4">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-lg font-semibold">{{ program.name }}</h3>
+                                <span class="px-2 py-1 text-xs rounded-full {% if program.status == 'active' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ program.get_status_display }}
+                                </span>
+                            </div>
+                            <p class="text-sm text-white opacity-90">{{ program.get_department_display }}</p>
+                        </div>
+                        
+                        <div class="p-4">
+                            <div class="mb-4">
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm text-gray-500">Program Type:</span>
+                                    <span class="text-sm font-medium">{{ program.get_program_type_display }}</span>
+                                </div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm text-gray-500">Capacity:</span>
+                                    <span class="text-sm font-medium">{{ program.capacity }} positions</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-500">Duration:</span>
+                                    <span class="text-sm font-medium">{{ program.start_date|date:"M Y" }} - {{ program.end_date|date:"M Y" }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center mt-4 pt-3 border-t">
+                                <a href="{% url 'programs:program_detail' program.id %}" class="text-teal-600 hover:text-teal-800 text-sm font-medium">View Details</a>
+                                
+                                {% if user.is_gme_staff %}
+                                    <div class="flex space-x-2">
+                                        <a href="{% url 'programs:program_update' program.id %}" class="text-blue-600 hover:text-blue-800 text-sm">Edit</a>
+                                        <a href="{% url 'programs:toggle_program_status' program.id %}" class="{% if program.status == 'active' %}text-red-600 hover:text-red-800{% else %}text-green-600 hover:text-green-800{% endif %} text-sm">
+                                            {% if program.status == 'active' %}Deactivate{% else %}Activate{% endif %}
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-gray-50 rounded-lg p-8 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No Programs Found</h3>
+                <p class="text-gray-600 mb-4">There are no programs matching your filters.</p>
+                <a href="{% url 'programs:program_list' %}" class="btn-primary">Clear Filters</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

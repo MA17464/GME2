@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - GME Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Create an Account</h1>
+        
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold text-gray-700 mb-3">Account Type</h2>
+                <div class="space-y-2">
+                    {% for radio in form.user_type %}
+                        <div class="flex items-start">
+                            {{ radio.tag }}
+                            <label for="{{ radio.id_for_label }}" class="ml-2 text-gray-700">
+                                {{ radio.choice_label }}
+                                {% if radio.choice_value == 'program_director' or radio.choice_value == 'interviewer' %}
+                                    <span class="text-sm text-gray-500 block">KHCC staff email required (@khcc.jo)</span>
+                                {% endif %}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if form.user_type.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.user_type.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div id="department-field" class="mb-4 hidden">
+                <label for="{{ form.department.id_for_label }}" class="block text-gray-700 font-medium mb-2">Department</label>
+                {{ form.department }}
+                {% if form.department.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.department.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="{{ form.first_name.id_for_label }}" class="block text-gray-700 font-medium mb-2">First Name</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <p class="text-red-600 text-sm mt-1">{{ form.first_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.last_name.id_for_label }}" class="block text-gray-700 font-medium mb-2">Last Name</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <p class="text-red-600 text-sm mt-1">{{ form.last_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.username.id_for_label }}" class="block text-gray-700 font-medium mb-2">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.username.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.email.id_for_label }}" class="block text-gray-700 font-medium mb-2">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.email.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label for="{{ form.password1.id_for_label }}" class="block text-gray-700 font-medium mb-2">Password</label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                        <p class="text-red-600 text-sm mt-1">{{ form.password1.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.password2.id_for_label }}" class="block text-gray-700 font-medium mb-2">Confirm Password</label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                        <p class="text-red-600 text-sm mt-1">{{ form.password2.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if form.non_field_errors %}
+                <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="flex flex-col gap-4">
+                <button type="submit" class="btn-primary w-full py-2">Register</button>
+                <p class="text-center text-gray-600">
+                    Already have an account? <a href="{% url 'accounts:login' %}" class="text-teal-600 hover:text-teal-800">Login</a>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const userTypeInputs = document.querySelectorAll('input[name="user_type"]');
+        const departmentField = document.getElementById('department-field');
+        
+        // Show/hide department field based on user type
+        function toggleDepartmentField() {
+            const selectedUserType = document.querySelector('input[name="user_type"]:checked')?.value;
+            if (selectedUserType === 'program_director' || selectedUserType === 'interviewer') {
+                departmentField.classList.remove('hidden');
+            } else {
+                departmentField.classList.add('hidden');
+            }
+        }
+        
+        // Initial check
+        toggleDepartmentField();
+        
+        // Add event listeners
+        userTypeInputs.forEach(input => {
+            input.addEventListener('change', toggleDepartmentField);
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %} 

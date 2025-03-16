@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GME - King Hussein Cancer Center{% endblock %}</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+    <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+        <nav class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="{% url 'core:home' %}" class="text-2xl font-bold text-teal-700">
+                GME Portal
+            </a>
+            
+            <div class="flex items-center space-x-4">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'core:dashboard' %}" class="text-gray-700 hover:text-teal-700">Dashboard</a>
+                    
+                    {% if user.is_gme_staff %}
+                        <a href="{% url 'accounts:staff_approval_list' %}" class="text-gray-700 hover:text-teal-700">Staff Approvals</a>
+                        <a href="{% url 'programs:program_list' %}" class="text-gray-700 hover:text-teal-700">Programs</a>
+                        <a href="{% url 'applications:list' %}" class="text-gray-700 hover:text-teal-700">Applications</a>
+                    {% elif user.is_program_director or user.is_interviewer %}
+                        <a href="{% url 'programs:program_list' %}" class="text-gray-700 hover:text-teal-700">Programs</a>
+                    {% elif user.is_applicant %}
+                        <a href="{% url 'applications:create' %}" class="text-gray-700 hover:text-teal-700">Apply</a>
+                    {% endif %}
+                    
+                    <div class="relative group">
+                        <button class="flex items-center text-gray-700 hover:text-teal-700" data-toggle="dropdown" data-target="#userDropdown">
+                            <span>{{ user.username }}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div id="userDropdown" class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden">
+                            <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                            <form action="{% url 'accounts:logout' %}" method="post" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="text-gray-700 hover:text-teal-700">Login</a>
+                    <a href="{% url 'accounts:register' %}" class="btn-primary">Register</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+    
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mx-auto px-4 py-2">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} auto-dismiss" role="alert">
+                    <div class="flex justify-between items-center">
+                        <span>{{ message }}</span>
+                        <button type="button" class="close">&times;</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6 flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <h3 class="text-xl font-bold">King Hussein Cancer Center</h3>
+                    <p class="text-gray-300">Graduate Medical Education</p>
+                </div>
+                <div class="text-center md:text-right">
+                    <p>&copy; {% now "Y" %} KHCC. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

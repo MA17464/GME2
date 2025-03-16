@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Applications - GME Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Applications</h1>
+            
+            {% if user.is_applicant %}
+                <a href="{% url 'programs:program_list' %}" class="btn-primary">
+                    <span class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        Apply to Program
+                    </span>
+                </a>
+            {% endif %}
+        </div>
+        
+        <!-- Filters -->
+        <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+            <h2 class="text-lg font-semibold text-gray-700 mb-3">Filters</h2>
+            <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {% if user.is_gme_staff or user.is_program_director %}
+                    <div>
+                        <label for="program" class="block text-sm font-medium text-gray-700 mb-1">Program</label>
+                        <select name="program" id="program" class="form-select">
+                            <option value="">All Programs</option>
+                            {% for program_id, program_name in programs %}
+                                <option value="{{ program_id }}" {% if request.GET.program == program_id|stringformat:"s" %}selected{% endif %}>{{ program_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+                
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
+                        <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                        <option value="eligible" {% if request.GET.status == 'eligible' %}selected{% endif %}>Eligible</option>
+                    </select>
+                </div>
+                
+                {% if user.is_gme_staff or user.is_program_director %}
+                    <div>
+                        <label for="applicant" class="block text-sm font-medium text-gray-700 mb-1">Applicant</label>
+                        <input type="text" name="applicant" id="applicant" class="form-input" value="{{ request.GET.applicant|default:'' }}" placeholder="Search by name or username">
+                    </div>
+                {% endif %}
+                
+                <div class="md:col-span-3 flex justify-end">
+                    <button type="submit" class="btn-secondary">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+        
+        {% if applications %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            {% if user.is_gme_staff or user.is_program_director or user.is_interviewer %}
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant</th>
+                            {% endif %}
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied On</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for application in applications %}
+                            <tr class="hover:bg-gray-50">
+                                {% if user.is_gme_staff or user.is_program_director or user.is_interviewer %}
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div>
+                                                <div class="text-sm font-medium text-gray-900">{{ application.applicant.get_full_name }}</div>
+                                                <div class="text-sm text-gray-500">{{ application.applicant.username }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                {% endif %}
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ application.program.name }}</div>
+                                    <div class="text-sm text-gray-500">{{ application.program.get_program_type_display }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if application.status == 'pending' %}bg-amber-100 text-amber-800
+                                        {% elif application.status == 'approved' %}bg-green-100 text-green-800
+                                        {% elif application.status == 'rejected' %}bg-red-100 text-red-800
+                                        {% elif application.status == 'eligible' %}bg-blue-100 text-blue-800{% endif %}">
+                                        {{ application.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ application.created_at|date:"M d, Y" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ application.updated_at|date:"M d, Y" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="{% url 'applications:application_detail' application.id %}" class="text-teal-600 hover:text-teal-900">View</a>
+                                    
+                                    {% if user.is_program_director and user.department == application.program.department and application.status == 'pending' %}
+                                        <span class="text-gray-300 mx-1">|</span>
+                                        <a href="{% url 'applications:update_status' application.id %}?status=eligible" class="text-blue-600 hover:text-blue-900">Mark Eligible</a>
+                                        <span class="text-gray-300 mx-1">|</span>
+                                        <a href="{% url 'applications:update_status' application.id %}?status=rejected" class="text-red-600 hover:text-red-900">Reject</a>
+                                    {% endif %}
+                                    
+                                    {% if user.is_gme_staff and application.status == 'eligible' %}
+                                        <span class="text-gray-300 mx-1">|</span>
+                                        <a href="{% url 'applications:update_status' application.id %}?status=approved" class="text-green-600 hover:text-green-900">Approve</a>
+                                        <span class="text-gray-300 mx-1">|</span>
+                                        <a href="{% url 'applications:update_status' application.id %}?status=rejected" class="text-red-600 hover:text-red-900">Reject</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="bg-gray-50 rounded-lg p-8 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No Applications Found</h3>
+                <p class="text-gray-600 mb-4">
+                    {% if user.is_applicant %}
+                        You haven't applied to any programs yet.
+                    {% else %}
+                        There are no applications matching your filters.
+                    {% endif %}
+                </p>
+                {% if user.is_applicant %}
+                    <a href="{% url 'programs:program_list' %}" class="btn-primary">Browse Programs</a>
+                {% else %}
+                    <a href="{% url 'applications:list' %}" class="btn-primary">Clear Filters</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

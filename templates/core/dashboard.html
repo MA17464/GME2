@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - GME Portal{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Dashboard</h1>
+    
+    {% if user.is_gme_staff %}
+        <!-- GME Staff Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <!-- Stats Cards -->
+            <div class="bg-teal-50 border border-teal-200 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-teal-700 mb-2">Pending Staff Approvals</h3>
+                <p class="text-3xl font-bold text-teal-800">{{ pending_staff_approvals }}</p>
+                <a href="{% url 'accounts:staff_approval_list' %}" class="text-teal-600 hover:text-teal-800 text-sm mt-2 inline-block">View all</a>
+            </div>
+            
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-blue-700 mb-2">Total Applications</h3>
+                <p class="text-3xl font-bold text-blue-800">{{ total_applications }}</p>
+                <a href="{% url 'applications:list' %}" class="text-blue-600 hover:text-blue-800 text-sm mt-2 inline-block">View all</a>
+            </div>
+            
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-amber-700 mb-2">Pending Applications</h3>
+                <p class="text-3xl font-bold text-amber-800">{{ pending_applications }}</p>
+                <a href="{% url 'applications:list' %}?status=submitted" class="text-amber-600 hover:text-amber-800 text-sm mt-2 inline-block">View all</a>
+            </div>
+            
+            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-purple-700 mb-2">Programs</h3>
+                <p class="text-3xl font-bold text-purple-800">{{ program_stats|length }}</p>
+                <a href="{% url 'programs:program_list' %}" class="text-purple-600 hover:text-purple-800 text-sm mt-2 inline-block">View all</a>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Program Stats -->
+            <div class="bg-white border rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Programs by Type</h3>
+                <div class="space-y-2">
+                    {% for stat in program_stats %}
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">{{ stat.program_type|title }}</span>
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded">{{ stat.count }}</span>
+                        </div>
+                    {% empty %}
+                        <p class="text-gray-500 italic">No programs available</p>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Application Stats -->
+            <div class="bg-white border rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Applications by Status</h3>
+                <div class="space-y-2">
+                    {% for stat in application_stats %}
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">{{ stat.status|title }}</span>
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded">{{ stat.count }}</span>
+                        </div>
+                    {% empty %}
+                        <p class="text-gray-500 italic">No applications available</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-8 flex flex-wrap gap-4">
+            <a href="{% url 'programs:program_create' %}" class="btn-primary">Create New Program</a>
+            <a href="{% url 'applications:bulk_email' %}" class="btn-secondary">Send Bulk Emails</a>
+        </div>
+        
+    {% elif user.is_program_director or user.is_interviewer %}
+        <!-- Program Director/Interviewer Dashboard -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Your Department: {{ user.get_department_display }}</h2>
+            
+            <div class="bg-white border rounded-lg p-4 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Department Programs</h3>
+                {% if department_programs %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacity</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for program in department_programs %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <a href="{% url 'programs:program_detail' program.id %}" class="text-teal-600 hover:text-teal-800">{{ program.name }}</a>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ program.get_program_type_display }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ program.capacity }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if program.status == 'active' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                                {{ program.get_status_display }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-gray-500 italic">No programs available for your department</p>
+                {% endif %}
+            </div>
+            
+            <div class="bg-white border rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Department Applications</h3>
+                {% if department_applications %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for application in department_applications %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ application.user.get_full_name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ application.program.name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                {% if application.status == 'approved' %}bg-green-100 text-green-800
+                                                {% elif application.status == 'rejected' %}bg-red-100 text-red-800
+                                                {% elif application.status == 'eligible' %}bg-blue-100 text-blue-800
+                                                {% elif application.status == 'not_eligible' %}bg-yellow-100 text-yellow-800
+                                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                {{ application.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ application.created_at|date:"M d, Y" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-gray-500 italic">No applications available for your department</p>
+                {% endif %}
+            </div>
+        </div>
+        
+    {% elif user.is_applicant %}
+        <!-- Applicant Dashboard -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Your Application</h2>
+            
+            {% if application %}
+                <div class="bg-white border rounded-lg p-6 mb-6">
+                    <div class="flex flex-col md:flex-row justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">{{ application.program.get_department_display }} - {{ application.program.get_program_type_display }}</h3>
+                            <p class="text-gray-600">Submitted on: {{ application.created_at|date:"F d, Y" }}</p>
+                        </div>
+                        <div class="mt-4 md:mt-0">
+                            <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full 
+                                {% if application.status == 'approved' %}bg-green-100 text-green-800
+                                {% elif application.status == 'rejected' %}bg-red-100 text-red-800
+                                {% elif application.status == 'eligible' %}bg-blue-100 text-blue-800
+                                {% elif application.status == 'not_eligible' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ application.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t pt-4 mt-4">
+                        <h4 class="font-medium text-gray-700 mb-2">Application Details</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-600">University: <span class="text-gray-800">{{ application.university_name }}</span></p>
+                                <p class="text-sm text-gray-600">GPA: <span class="text-gray-800">{{ application.gpa }}{% if application.is_gpa_percentage %}%{% endif %}</span></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Program: <span class="text-gray-800">{{ application.program.name }}</span></p>
+                                <p class="text-sm text-gray-600">Department: <span class="text-gray-800">{{ application.program.get_department_display }}</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t pt-4 mt-4">
+                        <h4 class="font-medium text-gray-700 mb-2">Documents</h4>
+                        {% if application.has_all_required_documents %}
+                            <div class="bg-green-50 border border-green-200 rounded p-3 mb-4">
+                                <p class="text-green-700">All required documents have been uploaded.</p>
+                            </div>
+                        {% else %}
+                            <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4">
+                                <p class="text-yellow-700">Some required documents are missing. Please upload all required documents.</p>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for document in application.documents.all %}
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="text-gray-700">{{ document.get_document_type_display }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex flex-wrap gap-4">
+                        <a href="{% url 'applications:detail' application.id %}" class="btn-primary">View Full Application</a>
+                        <a href="{% url 'applications:document_upload' %}" class="btn-secondary">Manage Documents</a>
+                    </div>
+                </div>
+            {% else %}
+                <div class="bg-white border rounded-lg p-6 mb-6">
+                    <div class="text-center py-8">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">No Application Found</h3>
+                        <p class="text-gray-600 mb-6">You haven't submitted an application yet. Apply now to one of our programs.</p>
+                        <a href="{% url 'applications:create' %}" class="btn-primary">Apply Now</a>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Available Programs</h2>
+            <div class="bg-white border rounded-lg p-4">
+                {% if available_programs %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacity</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for program in available_programs %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <a href="{% url 'programs:program_detail' program.id %}" class="text-teal-600 hover:text-teal-800">{{ program.get_department_display }}</a>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ program.get_program_type_display }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ program.capacity }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ program.start_date|date:"M Y" }} - {{ program.end_date|date:"M Y" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-gray-500 italic">No active programs available at the moment</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.id %}Edit{% else %}Create{% endif %} Program - GME Portal{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+        <a href="{% if form.instance.id %}{% url 'programs:program_detail' form.instance.id %}{% else %}{% url 'programs:program_list' %}{% endif %}" class="flex items-center text-teal-600 hover:text-teal-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            {% if form.instance.id %}Back to Program{% else %}Back to Programs{% endif %}
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">{% if form.instance.id %}Edit{% else %}Create{% endif %} Program</h1>
+        
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Program Name -->
+                <div class="md:col-span-2">
+                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Program Name</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="text-red-600 text-sm mt-1">
+                            {% for error in form.name.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Program Type -->
+                <div>
+                    <label for="{{ form.program_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Program Type</label>
+                    {{ form.program_type }}
+                    {% if form.program_type.errors %}
+                        <div class="text-red-600 text-sm mt-1">
+                            {% for error in form.program_type.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Department -->
+                <div>
+                    <label for="{{ form.department.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                    {{ form.department }}
+                    {% if form.department.errors %}
+                        <div class="text-red-600 text-sm mt-1">
+                            {% for error in form.department.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Capacity -->
+                <div>
+                    <label for="{{ form.capacity.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
+                    {{ form.capacity }}
+                    {% if form.capacity.errors %}
+                        <div class="text-red-600 text-sm mt-1">
+                            {% for error in form.capacity.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Maximum number of applicants that can be accepted</p>
+                </div>
+                
+                <!-- Status -->
+                <div>
+                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <div class="text-red-600 text-sm mt-1">
+                            {% for error in form.status.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Start Date -->
+                <div>
+                    <label for="{{ form.start_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                    {{ form.start_date }}
+                    {% if form.start_date.errors %}
+                        <div class="text-red-600 text-sm mt-1">
+                            {% for error in form.start_date.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- End Date -->
+                <div>
+                    <label for="{{ form.end_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                    {{ form.end_date }}
+                    {% if form.end_date.errors %}
+                        <div class="text-red-600 text-sm mt-1">
+                            {% for error in form.end_date.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Description -->
+                <div class="md:col-span-2">
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="text-red-600 text-sm mt-1">
+                            {% for error in form.description.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Provide a detailed description of the program</p>
+                </div>
+                
+                <!-- Requirements -->
+                <div class="md:col-span-2">
+                    <label for="{{ form.requirements.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Requirements</label>
+                    {{ form.requirements }}
+                    {% if form.requirements.errors %}
+                        <div class="text-red-600 text-sm mt-1">
+                            {% for error in form.requirements.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">List the requirements for applicants</p>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3 pt-4 border-t">
+                <a href="{% if form.instance.id %}{% url 'programs:program_detail' form.instance.id %}{% else %}{% url 'programs:program_list' %}{% endif %}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary">{% if form.instance.id %}Update{% else %}Create{% endif %} Program</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize date pickers
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add any JavaScript for date pickers or other form enhancements here
+        // This is a placeholder for any additional form functionality
+    });
+</script>
+{% endblock %} 

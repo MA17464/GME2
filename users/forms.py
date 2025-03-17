@@ -1,9 +1,16 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.core.validators import EmailValidator
+from django.core.validators import EmailValidator, FileExtensionValidator
+from django.core.exceptions import ValidationError
 from .models import User, Applicant, Program, Application, Interview, ApplicantScore
 import csv
 import io
+import os
+
+def validate_file_size(value):
+    filesize = value.size
+    if filesize > 10 * 1024 * 1024:  # 10MB
+        raise ValidationError("Maximum file size is 10MB")
 
 class KHCCEmailValidator(EmailValidator):
     def validate_domain_part(self, domain_part):
@@ -97,25 +104,49 @@ class ApplicationForm(forms.ModelForm):
     
     class Meta:
         model = Application
-        fields = ('program_type', 'program', 'university_name', 'gpa', 
-                  'national_id_document', 'cv', 'payment_receipt', 'university_certificate')
-        
+        fields = ['program', 'university_name', 'gpa', 'national_id_document', 'cv', 'payment_receipt', 'university_certificate']
+        widgets = {
+            'program': forms.Select(attrs={'class': 'form-select'}),
+            'university_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'gpa': forms.Select(attrs={'class': 'form-select'}),
+        }
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['program'].queryset = Program.objects.filter(status='ACTIVE')
         
-        # If program_type is already selected, filter programs
-        if 'program_type' in self.data:
-            try:
-                program_type = self.data.get('program_type')
-                self.fields['program'].queryset = Program.objects.filter(
-                    program_type=program_type, 
-                    status='ACTIVE'
-                )
-            except (ValueError, TypeError):
-                pass
+        # Add file validation to all file fields
+        for field in ['national_id_document', 'cv', 'payment_receipt', 'university_certificate']:
+            self.fields[field].validators = [
+                FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png']),
+                validate_file_size
+            ]
+            self.fields[field].widget.attrs.update({
+                'class': 'form-control',
+                'accept': '.pdf,.jpg,.jpeg,.png'
+            })
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        program = cleaned_data.get('program')
         
-        # Update the GPA field to use a select widget
-        self.fields['gpa'].widget = forms.Select(choices=Application.GPA_CHOICES)
+        if program:
+            # Check if user has already applied to this program
+            if self.instance.pk:  # If updating existing application
+                existing = Application.objects.filter(
+                    applicant=self.instance.applicant,
+                    program=program
+                ).exclude(pk=self.instance.pk).first()
+            else:  # If creating new application
+                existing = Application.objects.filter(
+                    applicant=self.instance.applicant,
+                    program=program
+                ).first()
+            
+            if existing:
+                raise ValidationError('You have already applied to this program.')
+        
+        return cleaned_data
 
 class StaffApprovalForm(forms.ModelForm):
     class Meta:

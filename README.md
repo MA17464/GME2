@@ -88,6 +88,15 @@
 
 ---
 
+## **Program Director Capabilities**:
+
+- Access a dashboard showing **"Invited for Interview" applicants** for their program.
+- View interview results and scores submitted by interviewers.
+- See the average interview score for each applicant displayed in the dashboard.
+- Conduct final review and submit the applicant's final score after all interviews are completed.
+
+---
+
 ## **Program Form**:
 
 - Program fields to be filled by GME Staff when creating a program:
@@ -183,6 +192,8 @@
 | **Total Score** | / 100 |
 
 
-**The Interview Score is the sum of all the scores in the interview form (same as Final Total).**
-**Test Score are automatically taken from the score that was uploaded by the GME Staff in the upload scores page.**
-**Medical School Score are automatically taken from the GPA of the applicant.**
+**- The Interview Score is the sum of all the scores in the interview form (same as Final Total).**
+**- Test Score are automatically taken from the score that was uploaded by the GME Staff in the upload scores page.**
+**- Medical School Score are automatically taken from the GPA of the applicant.**
+
+---

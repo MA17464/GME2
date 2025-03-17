@@ -31,4 +31,9 @@ urlpatterns = [
     
     # AJAX
     path('ajax/load-programs/', views.load_programs, name='ajax_load_programs'),
+
+    # Program Director URLs
+    path('director/dashboard/', views.director_dashboard, name='director_dashboard'),
+    path('director/interview-results/<int:application_id>/', views.view_interview_results, name='view_interview_results'),
+    path('director/submit-final-score/<int:application_id>/', views.submit_final_score, name='submit_final_score'),
 ] 

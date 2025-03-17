@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator, MinLengthValidator
 import os
 from uuid import uuid4
+from django.utils import timezone
+from django.db.models import Q
 
 class User(AbstractUser):
     USER_TYPE_CHOICES = (
@@ -102,6 +104,12 @@ class Application(models.Model):
     university_name = models.CharField(max_length=100)
     gpa = models.CharField(max_length=20, choices=GPA_CHOICES)
     
+    # Final score fields
+    final_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    final_score_submitted = models.BooleanField(default=False)
+    final_score_notes = models.TextField(blank=True)
+    final_score_submitted_at = models.DateTimeField(null=True, blank=True)
+    
     # Define a custom upload_to function for each field
     def national_id_upload_path(instance, filename):
         ext = filename.split('.')[-1]
@@ -160,6 +168,30 @@ class Application(models.Model):
             # Return a user-friendly document name
             return f"{document_types.get(field_name, 'Document')}"
         return None
+    
+    def get_average_score(self):
+        """
+        Calculate the average score from all interviews
+        """
+        # Get interviews excluding GME staff
+        interviews = self.interviews.filter(~Q(interviewer__user_type='GME_STAFF'))
+        
+        if not interviews.exists():
+            return 0
+        
+        total_score = sum(interview.get_total_score() for interview in interviews)
+        return total_score / interviews.count()
+    
+    def submit_final_score(self, score, notes=None):
+        """
+        Submit the final score for the application
+        """
+        self.final_score = score
+        self.final_score_submitted = True
+        self.final_score_submitted_at = timezone.now()
+        if notes:
+            self.final_score_notes = notes
+        self.save()
 
 class Interview(models.Model):
     FORM_TYPE_CHOICES = (

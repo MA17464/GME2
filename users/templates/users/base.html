@@ -102,6 +102,35 @@
         .stat-card .stat-label {
             color: var(--secondary-color);
         }
+
+        /* Floating Dashboard Button */
+        .floating-dashboard-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--khcc-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .floating-dashboard-btn:hover {
+            transform: scale(1.1);
+            background-color: #0056b3;
+            color: white;
+        }
+
+        .floating-dashboard-btn i {
+            font-size: 24px;
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -130,15 +159,15 @@
                             </li>
                         {% elif user.user_type == 'PROGRAM_DIRECTOR' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'interviewer_dashboard' %}">Program Applications</a>
+                                <a class="nav-link" href="{% url 'director_dashboard' %}">Dashboard</a>
                             </li>
                         {% elif user.user_type == 'APPLICANT' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'applicant_dashboard' %}">My Application</a>
+                                <a class="nav-link" href="{% url 'applicant_dashboard' %}">Dashboard</a>
                             </li>
                         {% elif user.user_type == 'INTERVIEWER' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'interviewer_dashboard' %}">Interviews</a>
+                                <a class="nav-link" href="{% url 'interviewer_dashboard' %}">Dashboard</a>
                             </li>
                         {% endif %}
                         <li class="nav-item">
@@ -185,14 +214,35 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <p>&copy; {% now "Y" %} King Hussein Cancer Center. All rights reserved.</p>
+                    <p>Made With ❤️ by The AI Office @KHCC</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p>Graduate Medical Education</p>
+                    <p>Graduate Medical Education Platform</p>
                 </div>
             </div>
         </div>
     </footer>
+
+    <!-- Floating Dashboard Button -->
+    {% if user.is_authenticated and request.resolver_match.url_name not in 'home,dashboard,applicant_dashboard,interviewer_dashboard,director_dashboard' %}
+        {% if user.user_type == 'GME_STAFF' %}
+            <a href="{% url 'dashboard' %}" class="floating-dashboard-btn" title="Back to Dashboard">
+                <i class="fas fa-home"></i>
+            </a>
+        {% elif user.user_type == 'PROGRAM_DIRECTOR' %}
+            <a href="{% url 'director_dashboard' %}" class="floating-dashboard-btn" title="Back to Dashboard">
+                <i class="fas fa-home"></i>
+            </a>
+        {% elif user.user_type == 'INTERVIEWER' %}
+            <a href="{% url 'interviewer_dashboard' %}" class="floating-dashboard-btn" title="Back to Dashboard">
+                <i class="fas fa-home"></i>
+            </a>
+        {% elif user.user_type == 'APPLICANT' %}
+            <a href="{% url 'applicant_dashboard' %}" class="floating-dashboard-btn" title="Back to Dashboard">
+                <i class="fas fa-home"></i>
+            </a>
+        {% endif %}
+    {% endif %}
 
     <!-- Bootstrap 5 JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>

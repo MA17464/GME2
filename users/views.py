@@ -64,8 +64,10 @@ def user_login(request):
                     return redirect('dashboard')
                 elif user.user_type == 'APPLICANT':
                     return redirect('applicant_dashboard')
-                elif user.user_type == 'INTERVIEWER' or user.user_type == 'PROGRAM_DIRECTOR':
+                elif user.user_type == 'INTERVIEWER':
                     return redirect('interviewer_dashboard')
+                elif user.user_type == 'PROGRAM_DIRECTOR':
+                    return redirect('director_dashboard')
                 else:
                     return redirect('home')
             else:
@@ -89,6 +91,9 @@ def is_applicant(user):
 
 def is_interviewer(user):
     return user.is_authenticated and (user.user_type == 'INTERVIEWER' or user.user_type == 'PROGRAM_DIRECTOR')
+
+def is_program_director(user):
+    return user.is_authenticated and user.user_type == 'PROGRAM_DIRECTOR'
 
 @login_required
 @user_passes_test(is_gme_staff)
@@ -690,3 +695,74 @@ def export_applications(request):
         ])
     
     return response
+
+@login_required
+@user_passes_test(is_program_director)
+def director_dashboard(request):
+    # Get the director's program
+    program = request.user.program
+    
+    if not program:
+        messages.error(request, 'You are not assigned to any program.')
+        return redirect('home')
+    
+    # Get all applications for the program
+    applications = Application.objects.filter(program=program)
+    
+    # Get applications that have been interviewed
+    interviewed_applications = applications.filter(interviews__isnull=False).distinct()
+    
+    return render(request, 'users/director_dashboard.html', {
+        'program': program,
+        'applications': applications,
+        'interviewed_applications': interviewed_applications
+    })
+
+@login_required
+@user_passes_test(is_program_director)
+def view_interview_results(request, application_id):
+    application = get_object_or_404(Application, id=application_id)
+    
+    # Verify the application is for the director's program
+    if application.program != request.user.program:
+        messages.error(request, 'You are not authorized to view this application.')
+        return redirect('director_dashboard')
+    
+    # Get interviews excluding GME staff
+    interviews = application.interviews.filter(~Q(interviewer__user_type='GME_STAFF'))
+    
+    return render(request, 'users/view_interview_results.html', {
+        'application': application,
+        'interviews': interviews
+    })
+
+@login_required
+@user_passes_test(is_program_director)
+def submit_final_score(request, application_id):
+    application = get_object_or_404(Application, id=application_id)
+    
+    # Verify the application is for the director's program
+    if application.program != request.user.program:
+        messages.error(request, 'You are not authorized to submit scores for this application.')
+        return redirect('director_dashboard')
+    
+    # Check if final score has already been submitted
+    if application.final_score_submitted:
+        messages.error(request, 'Final score has already been submitted for this application.')
+        return redirect('view_interview_results', application_id=application_id)
+    
+    if request.method == 'POST':
+        try:
+            final_score = float(request.POST.get('final_score'))
+            notes = request.POST.get('notes')
+            
+            if 0 <= final_score <= 100:
+                application.submit_final_score(final_score, notes)
+                messages.success(request, 'Final score submitted successfully.')
+                return redirect('view_interview_results', application_id=application_id)
+            else:
+                messages.error(request, 'Final score must be between 0 and 100.')
+        except (ValueError, TypeError):
+            messages.error(request, 'Please enter a valid score.')
+    
+    return redirect('view_interview_results', application_id=application_id)

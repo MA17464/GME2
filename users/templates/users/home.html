@@ -1,0 +1,143 @@
+{% extends 'users/base.html' %}
+
+{% block title %}KHCC Graduate Medical Education - Home{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center">
+                <h1 class="card-title">Welcome to King Hussein Cancer Center</h1>
+                <h3 class="card-subtitle mb-3 text-muted">Graduate Medical Education Programs</h3>
+                <p class="card-text">
+                    King Hussein Cancer Center (KHCC) offers comprehensive Residency and Fellowship programs 
+                    designed to train the next generation of medical professionals in oncology and related fields.
+                </p>
+                {% if not user.is_authenticated %}
+                <div class="mt-4">
+                    <a href="{% url 'login' %}" class="btn btn-primary me-2">Login</a>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            Register
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'staff_register' %}">KHCC Staff</a></li>
+                            <li><a class="dropdown-item" href="{% url 'applicant_register' %}">Applicant</a></li>
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Residency Programs</h3>
+            </div>
+            <div class="card-body">
+                <p>Our residency programs provide comprehensive training in various specialties:</p>
+                <ul>
+                    <li>Internal Medicine</li>
+                    <li>Pediatrics</li>
+                    <li>General Surgery</li>
+                    <li>Radiation Oncology</li>
+                    <li>Pathology and Laboratory Medicine</li>
+                    <li>Nuclear Medicine</li>
+                    <li>Diagnostic Radiology</li>
+                    <li>Anesthesia</li>
+                </ul>
+                <p>These programs are designed to provide residents with the knowledge, skills, and experience necessary to excel in their chosen specialty.</p>
+            </div>
+            <div class="card-footer">
+                <h5>Available Programs:</h5>
+                <div class="list-group">
+                    {% for program in residency_programs %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ program.name }}</h5>
+                        </div>
+                        <p class="mb-1">Start Date: {{ program.start_date }} | End Date: {{ program.end_date }}</p>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item">No active residency programs available at the moment.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Fellowship Programs</h3>
+            </div>
+            <div class="card-body">
+                <p>Our fellowship programs offer advanced training for physicians who have completed their residency:</p>
+                <ul>
+                    <li>Medical Oncology</li>
+                    <li>Pediatric Hematology-Oncology</li>
+                    <li>Surgical Oncology</li>
+                    <li>Radiation Oncology</li>
+                    <li>Palliative Care</li>
+                    <li>Pain Management</li>
+                </ul>
+                <p>These programs provide specialized training and research opportunities in oncology and related fields.</p>
+            </div>
+            <div class="card-footer">
+                <h5>Available Programs:</h5>
+                <div class="list-group">
+                    {% for program in fellowship_programs %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ program.name }}</h5>
+                        </div>
+                        <p class="mb-1">Start Date: {{ program.start_date }} | End Date: {{ program.end_date }}</p>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item">No active fellowship programs available at the moment.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title">Application Process</h3>
+                <p>To apply for our programs, please follow these steps:</p>
+                <ol>
+                    <li>Register as an applicant on our platform</li>
+                    <li>Login to your account</li>
+                    <li>Select the program you wish to apply for</li>
+                    <li>Complete the application form and upload required documents</li>
+                    <li>Submit your application</li>
+                </ol>
+                <p>Required documents include:</p>
+                <ul>
+                    <li>National ID/Identification Card</li>
+                    <li>Curriculum Vitae (CV)</li>
+                    <li>Payment Receipt</li>
+                    <li>University Certificate</li>
+                </ul>
+                
+                {% if user.is_authenticated and user.user_type == 'APPLICANT' %}
+                <div class="text-center mt-3">
+                    <a href="{% url 'applicant_dashboard' %}" class="btn btn-primary">Go to My Application</a>
+                </div>
+                {% elif not user.is_authenticated %}
+                <div class="text-center mt-3">
+                    <a href="{% url 'applicant_register' %}" class="btn btn-primary">Register as Applicant</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

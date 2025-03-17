@@ -1,0 +1,151 @@
+{% extends 'users/base.html' %}
+
+{% block title %}My Application - KHCC Graduate Medical Education{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">My Application</h3>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h4>Application Status</h4>
+                        <div class="d-flex align-items-center mt-3">
+                            <div class="me-3">
+                                <span class="badge {% if application.status == 'SUBMITTED' %}bg-secondary{% elif application.status == 'ELIGIBLE' %}bg-success{% elif application.status == 'NOT_ELIGIBLE' %}bg-danger{% elif application.status == 'APPROVED' %}bg-primary{% elif application.status == 'REJECTED' %}bg-dark{% endif %} p-2" style="font-size: 1rem;">
+                                    {{ application.get_status_display }}
+                                </span>
+                            </div>
+                            <div>
+                                <p class="mb-0">Last Updated: {{ application.updated_at|date:"F d, Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Program Information</h4>
+                        <p><strong>Program:</strong> {{ application.program.name }}</p>
+                        <p><strong>Type:</strong> {{ application.program.get_program_type_display }}</p>
+                        <p><strong>Duration:</strong> {{ application.program.start_date|date:"M d, Y" }} to {{ application.program.end_date|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h4>Personal Information</h4>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Name (English):</strong> {{ user.applicant_profile.first_name_en }} {{ user.applicant_profile.second_name_en }} {{ user.applicant_profile.third_name_en }} {{ user.applicant_profile.last_name_en }}</p>
+                        <p><strong>Name (Arabic):</strong> {{ user.applicant_profile.first_name_ar }} {{ user.applicant_profile.second_name_ar }} {{ user.applicant_profile.third_name_ar }} {{ user.applicant_profile.last_name_ar }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Email:</strong> {{ user.email }}</p>
+                        <p><strong>Phone:</strong> {{ user.phone_number }}</p>
+                        <p><strong>National ID:</strong> {{ user.applicant_profile.national_id }}</p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h4>Education Information</h4>
+                        <p><strong>University:</strong> {{ application.university_name }}</p>
+                        <p><strong>GPA:</strong> {{ application.gpa }}</p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <h4>Submitted Documents</h4>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Document Type</th>
+                                        <th>File</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>National ID</td>
+                                        <td>
+                                            <a href="{{ application.national_id_document.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-file-alt me-1"></i>View Document
+                                                {% if file_names.national_id_document %}
+                                                <span class="ms-1">({{ file_names.national_id_document }})</span>
+                                                {% endif %}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Curriculum Vitae (CV)</td>
+                                        <td>
+                                            <a href="{{ application.cv.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-file-alt me-1"></i>View Document
+                                                {% if file_names.cv %}
+                                                <span class="ms-1">({{ file_names.cv }})</span>
+                                                {% endif %}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Payment Receipt</td>
+                                        <td>
+                                            <a href="{{ application.payment_receipt.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-file-alt me-1"></i>View Document
+                                                {% if file_names.payment_receipt %}
+                                                <span class="ms-1">({{ file_names.payment_receipt }})</span>
+                                                {% endif %}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>University Certificate</td>
+                                        <td>
+                                            <a href="{{ application.university_certificate.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-file-alt me-1"></i>View Document
+                                                {% if file_names.university_certificate %}
+                                                <span class="ms-1">({{ file_names.university_certificate }})</span>
+                                                {% endif %}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if application.status == 'SUBMITTED' %}
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-info-circle me-2"></i>Your application has been submitted and is currently under review. You will be notified once the status changes.
+                </div>
+                {% elif application.status == 'ELIGIBLE' %}
+                <div class="alert alert-success mt-4">
+                    <i class="fas fa-check-circle me-2"></i>Your application has been marked as eligible. The final decision is pending.
+                </div>
+                {% elif application.status == 'NOT_ELIGIBLE' %}
+                <div class="alert alert-danger mt-4">
+                    <i class="fas fa-times-circle me-2"></i>Your application has been marked as not eligible. Please contact the GME office for more information.
+                </div>
+                {% elif application.status == 'APPROVED' %}
+                <div class="alert alert-success mt-4">
+                    <i class="fas fa-check-circle me-2"></i>Congratulations! Your application has been approved. The GME office will contact you with further instructions.
+                </div>
+                {% elif application.status == 'REJECTED' %}
+                <div class="alert alert-danger mt-4">
+                    <i class="fas fa-times-circle me-2"></i>We regret to inform you that your application has been rejected. Please contact the GME office for more information.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

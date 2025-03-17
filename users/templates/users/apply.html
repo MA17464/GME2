@@ -1,0 +1,197 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Apply for Program - KHCC Graduate Medical Education{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Apply for Program</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Please complete all fields and upload the required documents to submit your application.
+                </div>
+                
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    <h4 class="mb-3">Program Selection</h4>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_program_type" class="form-label">Program Type</label>
+                            <select name="program_type" id="id_program_type" class="form-select {% if form.program_type.errors %}is-invalid{% endif %}" required>
+                                <option value="" selected>Select Program Type</option>
+                                {% for value, text in form.program_type.field.choices %}
+                                    <option value="{{ value }}">{{ text }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if form.program_type.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.program_type.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_program" class="form-label">Program</label>
+                            <select name="program" id="id_program" class="form-select {% if form.program.errors %}is-invalid{% endif %}" required>
+                                <option value="" selected>Select Program Type First</option>
+                            </select>
+                            {% if form.program.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.program.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <h4 class="mb-3 mt-4">Education Information</h4>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_university_name" class="form-label">University Name</label>
+                            <input type="text" name="university_name" id="id_university_name" class="form-control {% if form.university_name.errors %}is-invalid{% endif %}" required>
+                            {% if form.university_name.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.university_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_gpa" class="form-label">GPA</label>
+                            <input type="number" name="gpa" id="id_gpa" class="form-control {% if form.gpa.errors %}is-invalid{% endif %}" step="0.01" min="0" max="4" required>
+                            {% if form.gpa.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.gpa.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Enter your GPA on a scale of 4.0</div>
+                        </div>
+                    </div>
+                    
+                    <h4 class="mb-3 mt-4">Required Documents</h4>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_national_id_document" class="form-label">National ID/Identification Card</label>
+                            <input type="file" name="national_id_document" id="id_national_id_document" class="form-control {% if form.national_id_document.errors %}is-invalid{% endif %}" required>
+                            {% if form.national_id_document.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.national_id_document.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Upload a scanned copy of your National ID (PDF or image format)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_cv" class="form-label">Curriculum Vitae (CV)</label>
+                            <input type="file" name="cv" id="id_cv" class="form-control {% if form.cv.errors %}is-invalid{% endif %}" required>
+                            {% if form.cv.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.cv.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Upload your CV in PDF format</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_payment_receipt" class="form-label">Payment Receipt</label>
+                            <input type="file" name="payment_receipt" id="id_payment_receipt" class="form-control {% if form.payment_receipt.errors %}is-invalid{% endif %}" required>
+                            {% if form.payment_receipt.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.payment_receipt.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Upload a scanned copy of your payment receipt (PDF or image format)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_university_certificate" class="form-label">University Certificate</label>
+                            <input type="file" name="university_certificate" id="id_university_certificate" class="form-control {% if form.university_certificate.errors %}is-invalid{% endif %}" required>
+                            {% if form.university_certificate.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.university_certificate.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Upload a scanned copy of your university certificate (PDF or image format)</div>
+                        </div>
+                    </div>
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Submit Application</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Dynamic loading of programs based on program type
+    $("#id_program_type").change(function() {
+        const programTypeId = $(this).val();
+        const programSelect = $("#id_program");
+        
+        if (programTypeId) {
+            // Clear current options
+            programSelect.empty();
+            programSelect.append('<option value="">Loading programs...</option>');
+            
+            // Fetch programs via AJAX
+            $.ajax({
+                url: "{% url 'ajax_load_programs' %}",
+                data: {
+                    'program_type': programTypeId
+                },
+                dataType: 'json',
+                success: function(data) {
+                    programSelect.empty();
+                    programSelect.append('<option value="">Select Program</option>');
+                    
+                    if (data.length > 0) {
+                        $.each(data, function(index, program) {
+                            programSelect.append(`<option value="${program.id}">${program.name}</option>`);
+                        });
+                    } else {
+                        programSelect.append('<option value="">No programs available</option>');
+                    }
+                },
+                error: function(error) {
+                    console.log("Error loading programs:", error);
+                    programSelect.empty();
+                    programSelect.append('<option value="">Error loading programs</option>');
+                }
+            });
+        } else {
+            programSelect.empty();
+            programSelect.append('<option value="">Select Program Type First</option>');
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %} 

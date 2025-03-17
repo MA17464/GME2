@@ -1,0 +1,147 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Send Bulk Email - KHCC Graduate Medical Education{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Send Bulk Email to Applicants</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <h4>Email Content</h4>
+                        <div class="mb-3">
+                            <label for="id_subject" class="form-label">Subject</label>
+                            <input type="text" name="subject" id="id_subject" class="form-control {% if form.subject.errors %}is-invalid{% endif %}" required>
+                            {% if form.subject.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.subject.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_message" class="form-label">Message</label>
+                            <textarea name="message" id="id_message" class="form-control {% if form.message.errors %}is-invalid{% endif %}" rows="6" required></textarea>
+                            {% if form.message.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.message.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Write your message to the selected applicants. This will be sent to all selected applicants.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-4">
+                        <h4>Select Recipients</h4>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Select the applications you want to send the email to. You can use the filters to narrow down the list.
+                        </div>
+                        
+                        {% if form.applications.field.queryset %}
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                                    <label class="form-check-label" for="selectAll">Select All</label>
+                                                </div>
+                                            </th>
+                                            <th>Applicant</th>
+                                            <th>Email</th>
+                                            <th>Program</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for application in form.applications.field.queryset %}
+                                            <tr>
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input application-checkbox" type="checkbox" name="applications" value="{{ application.id }}" id="application_{{ application.id }}">
+                                                        <label class="form-check-label" for="application_{{ application.id }}"></label>
+                                                    </div>
+                                                </td>
+                                                <td>{{ application.applicant.username }}</td>
+                                                <td>{{ application.applicant.email }}</td>
+                                                <td>{{ application.program.name }}</td>
+                                                <td>
+                                                    <span class="badge {% if application.status == 'SUBMITTED' %}bg-secondary{% elif application.status == 'ELIGIBLE' %}bg-success{% elif application.status == 'NOT_ELIGIBLE' %}bg-danger{% elif application.status == 'APPROVED' %}bg-primary{% elif application.status == 'REJECTED' %}bg-dark{% endif %}">
+                                                        {{ application.get_status_display }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                No applications found matching the criteria.
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i>Send Email
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Select/Deselect All functionality
+    document.getElementById('selectAll').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.application-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+    });
+    
+    // Update "Select All" checkbox based on individual selections
+    const applicationCheckboxes = document.querySelectorAll('.application-checkbox');
+    applicationCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const allCheckboxes = document.querySelectorAll('.application-checkbox');
+            const checkedCheckboxes = document.querySelectorAll('.application-checkbox:checked');
+            
+            document.getElementById('selectAll').checked = allCheckboxes.length === checkedCheckboxes.length;
+            document.getElementById('selectAll').indeterminate = checkedCheckboxes.length > 0 && checkedCheckboxes.length < allCheckboxes.length;
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %} 

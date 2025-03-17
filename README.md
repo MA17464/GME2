@@ -1,91 +1,183 @@
-I want to create a django application for Residency and Fellowship programs "Graduate Medical Education" (gme) for the King Hussein Cancer Center
+# KHCC Medical Programs Application System
 
+## Pages:
 
-## Welcome Page:
-* Two windows for Residency and Fellowship programs info
-* Two buttons for Login and Register
+### **Welcome Page:**
+- Two windows displaying information for:
+  - Residency Programs
+  - Fellowship Programs
+- Two buttons for Login and Registration
 
-## Users:
-There're two main user types:
--> KHCC Staff
-    -> GME Staff (System Admin)
-    -> Program Director
-    -> Interviewer
--> Non-KHCC Staff (Applicant)
+---
 
+## **User Types:**
 
-* The KHCC Staff users when signed up, the GME Staff should approve their account to continue. and their email should be "@khcc.jo"
-* The Non-KHCC staff can register without approval.
+1. **KHCC Staff Users**:
+   - **GME Staff (System Admin)**  
+   - **Program Director**  
+   - **Interviewer**
 
-For Interviewer and Program Director roles they have to choose the department they are in:
-- Internal Medicine Department
-- Pediatrics Department 
-- General Surgery Department
-- Radiation Oncology Department
-- Pathology and Laboratory Medicine Department
-- Nuclear Medicine Department
-- Diagnostic Radiology Department
-- Anesthesia Department
+2. **Non-KHCC Staff (Applicant)**
 
-* Make a login and registration page.
+---
 
-## Dashboard:
-* Only GME Staff can see and filter the applications for the programs and set eligibility and approval status.
-* the GME staff can select in bulk and filter the applications for the programs to send emails to the applicants (add a button to send emails and the ability to add a subject and body to the email).
+### **User Registration and Approval:**
 
-## GME Staff:
-* GME Staff can approve or reject the KHCC Staff accounts.
-* GME Staff can create the Residency or Fellowship programs (name, type, capacity, start date, end date, status, etc...).
-* GME Staff checks the documents and eligibility of the applications for the programs and approve or reject them.
+- **KHCC Staff**:  
+   - When registering, accounts must be approved by GME Staff.  
+   - Email addresses must follow the format `@khcc.jo`.
+   - The "Interviewer" and "Program Director" roles must select the program they are interviewing for
+  
+- **Non-KHCC Staff (Applicants)**:  
+   - No approval required to register.
 
-## Applicant:
-* Applicant can apply only for one program at a time.
-* Applicant can view the application status and info.
+---
 
-## Program Form:
-- Name (department name)
-- Program Type (Residency, Fellowship)
-- Start Date
-- End Date
-- Status (active, inactive)
-- Capacity
+### **Login and Registration Pages**:  
+- Standard login and registration functionality.
 
-## Application Form:
-Program Selection
-- Program Type
-- Select Program
+---
 
-Education Information
-- University Name
-- GPA (either in percentage or scale of 4)
+## **Dashboard**:
 
-Required Documents (handle the naming of the documents)
-- National ID/Identification Card
-- Curriculum Vitae (CV)
-- Payment Receipt
-- University Certificate
+- Only **GME Staff** can access the dashboard.
+- **GME Staff** can:
+   - Filter and view applications for Residency and Fellowship programs.
+   - Set eligibility and approval status for each application.
+   - Bulk select applications and send emails to applicants (with customizable subject and body).
+   - **Bulk choose applications** for further processing.
+   - Access **advanced filtering options** (scores, GPA, program, status).
+   - **Upload CSV/Excel files** containing applicant National IDs with scores for automatic matching.
+   - **Edit applicant status in bulk**.
+   - **Filter scores and bulk select applicants** to invite for interviews.
 
-Personal Information
-- Name in English
-- First Name (English)
-- Second Name (English)
-- Third Name (English)
-- Last Name (English)
-- Name in Arabic
-- Last Name (Arabic)
-- Third Name (Arabic)
-- Second Name (Arabic)
-- First Name (Arabic)
+---
 
-Contact Information
-- Phone Number
-- National ID
+## **GME Staff Capabilities**:
 
+- **Account Management**:
+   - Approve or reject KHCC Staff accounts.
+   
+- **Program Management**:
+   - Create and manage Residency or Fellowship programs with fields like:
+     - Program Name
+     - Program Type (Residency/Fellowship)
+     - Start Date
+     - End Date
+     - Status (active/inactive)
+   
+- **Application Management**:
+   - Review documents and eligibility for applications.
+   - Approve or reject applications.
+   - **Invite applicants for interviews**.
 
-## Application Status:
-* Application Status
-- Submitted
-- Eligible
-- Not Eligible
-- Approved
-- Rejected
+---
+
+## **Applicant Capabilities**:
+
+- Applicants can apply for **only one program at a time**.
+- They can view their application status and program details.
+- They can **save applications as drafts** and submit them later.
+
+---
+
+## **Interviewer Capabilities**:
+
+- Access a dashboard showing **only "Invited for Interview" applicants** for their registered program.
+- Score applicants according to the appropriate interview scoring form (Residency or Fellowship).
+
+---
+
+## **Program Form**:
+
+- Program fields to be filled by GME Staff when creating a program:
+   - **Name**
+   - **Program Type** (Residency/Fellowship)
+   - **Start Date**
+   - **End Date**
+   - **Status** (Active/Inactive)
+
+---
+
+## **Application Form**:
+
+1. **Program Selection**:
+   - **Program Type** (Residency/Fellowship)
+   - **Select Program**
+
+2. **Education Information**:
+   - University Name
+   - GPA (Acceptable, Good, Very Good, Excellent)
+
+3. **Required Documents**:
+   - National ID/Identification Card
+   - Curriculum Vitae (CV)
+   - Payment Receipt
+   - University Certificate
+
+4. **Personal Information**:
+   - Name in English and Arabic (First, Second, Third, Last Name in both languages)
+
+5. **Contact Information**:
+   - Phone Number
+   - National ID
+
+---
+
+## **Application Status**:
+
+- The application can have one of the following statuses:
+   - Submitted
+   - Eligible
+   - Not Eligible
+   - Approved
+   - Rejected
+   - **Invited for Interview**
+
+---
+
+## **Interview Scoring Forms**:
+
+### **Residency Program Scoring Form**:
+
+| Interview Area | Score |
+|----------------|-------|
+| **Professional Appearance**: <br>Dress, attitude, avoid cross-legging, less stress, no stuttering, etc. | / 5 |
+| **Interest**: <br>Why you choose this specialty? (should give details)<br>Why our institution? (should be aware of the surgical and medical practices of the center) | / 5 |
+| **Behavior**: <br>"Tell me about one experience with patient you had trouble with"<br>"Tell me about one experience you made a mistake and had to tell a colleague about it"<br>"How would you deal with a resident who did not do his share of work" | / 5 |
+| **Future Plans**: <br>"Where do you see yourself in 5 years"<br>"How would this training develop your career" | / 5 |
+| **Personality**: <br>"Tell me about your strengths and weaknesses"<br>"Tell me about one case you learned from"<br>"What do you do in your free time?" | / 5 |
+| **Handling emergencies and work load**: <br>Ask candidate about clinical scenarios (candidate should show his/her fast step in emergency cases to ensure patient safety) | / 5 |
+| **Professional Attitude**: <br>"Tell me about a time your work was criticized/ how did you react?"<br>"Tell me about a stressful situation you have been through and how you solved it" | / 5 |
+| **Knowledge**: <br>"Ask about one clinical scenario related to specialty applied for and ask the applicant for differential diagnosis and next step management" | / 5 |
+| **Research**: <br>One or more published papers = 5 marks<br>Ongoing project (IRB approved) = 2 marks | / 5 |
+
+| Evaluation Area | Score |
+|-----------------|-------|
+| Test score | / 75 |
+| Interview score | / 15 |
+| **Medical School Score**: <br>Excellent = 10 marks<br>Very Good = 8 marks<br>Good = 6 marks<br>Satisfactory = 4 marks | / 10 |
+| **Total Score** | / 100 |
+
+### **Fellowship Program Scoring Form**:
+
+| Interview Area | Score |
+|----------------|-------|
+| **Professional Appearance**: <br>Dress, attitude, avoid cross-legging, less stress, no stuttering, etc. | / 5 |
+| **Interest**: <br>Why you choose this specialty? (should give details)<br>Why our institution? (should be aware of the surgical and medical practices of the center) | / 5 |
+| **Behavior**: <br>"Tell me about one experience with patient you had trouble with"<br>"Tell me about one experience you made a mistake and had to tell a colleague about it"<br>"How would you deal with a resident who did not do his share of work" | / 5 |
+| **Future Plans**: <br>"Where do you see yourself in 5 years"<br>"How would this training develop your career" | / 5 |
+| **Personality**: <br>"Tell me about your strengths and weaknesses"<br>"Tell me about one case you learned from"<br>"What do you do in your free time?" | / 5 |
+| **Handling emergencies and work load**: <br>Ask candidate about clinical scenarios (candidate should show his/her fast step in emergency cases to ensure patient safety) | / 5 |
+| **Professional Attitude**: <br>"Tell me about a time your work was criticized/ how did you react?"<br>"Tell me about a stressful situation you have been through and how you solved it" | / 5 |
+| **Knowledge**: <br>"Ask about one clinical scenario related to specialty applied for and ask the applicant for differential diagnosis and next step management" | / 5 |
+| **Research**: <br>One or more published papers = 5 marks<br>Ongoing project (IRB approved) = 2 marks | / 10 |
+| **Tentative Available Date**: | |
+| **Final Total** | / 50 |
+
+| Evaluation Area | Score |
+|-----------------|-------|
+| Interview score | / 50 |
+| Test score (written/Oral) | / 40 |
+| **Medical School Score**: <br>Excellent = 10 marks<br>Very Good = 8 marks<br>Good = 6 marks<br>Satisfactory = 4 marks | / 10 |
+| **Total Score** | / 100 |

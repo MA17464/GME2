@@ -1,0 +1,38 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Login - KHCC Graduate Medical Education{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Login</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer">
+                <div class="text-center">
+                    <p>Don't have an account?</p>
+                    <a href="{% url 'staff_register' %}" class="btn btn-outline-primary me-2">Register as KHCC Staff</a>
+                    <a href="{% url 'applicant_register' %}" class="btn btn-outline-primary">Register as Applicant</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

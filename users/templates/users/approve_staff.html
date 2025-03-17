@@ -1,0 +1,67 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Review Staff Account - KHCC Graduate Medical Education{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Review Staff Account</h3>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h4>Account Information</h4>
+                        <p><strong>Username:</strong> {{ staff.username }}</p>
+                        <p><strong>Email:</strong> {{ staff.email }}</p>
+                        <p><strong>Role:</strong> {{ staff.get_user_type_display }}</p>
+                        {% if staff.user_type == 'PROGRAM_DIRECTOR' or staff.user_type == 'INTERVIEWER' %}
+                            <p><strong>Program:</strong> {{ staff.program.name }} ({{ staff.program.get_program_type_display }})</p>
+                        {% endif %}
+                        <p><strong>Phone:</strong> {{ staff.phone_number|default:"N/A" }}</p>
+                        <p><strong>Date Joined:</strong> {{ staff.date_joined|date:"F d, Y" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Approval Status</h4>
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="is_approved" id="id_is_approved" {% if form.is_approved.value %}checked{% endif %}>
+                                    <label class="form-check-label" for="id_is_approved">Approve Account</label>
+                                </div>
+                                <div class="form-text">
+                                    Check to approve this staff account. Unchecking will revoke access.
+                                </div>
+                            </div>
+                            
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {% for error in form.non_field_errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="alert {% if staff.is_approved %}alert-success{% else %}alert-warning{% endif %}">
+                    <i class="fas {% if staff.is_approved %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} me-2"></i>
+                    This account is currently <strong>{% if staff.is_approved %}approved{% else %}pending approval{% endif %}</strong>.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

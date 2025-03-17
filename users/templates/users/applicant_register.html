@@ -1,0 +1,217 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Applicant Registration - KHCC Graduate Medical Education{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Applicant Registration</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <h4 class="mb-3">Account Information</h4>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_username" class="form-label">Username</label>
+                            <input type="text" name="username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" id="id_username" required>
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.username.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_email" class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" id="id_email" required>
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_password1" class="form-label">Password</label>
+                            <input type="password" name="password1" class="form-control {% if form.password1.errors %}is-invalid{% endif %}" id="id_password1" required>
+                            {% if form.password1.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.password1.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                {{ form.password1.help_text }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_password2" class="form-label">Confirm Password</label>
+                            <input type="password" name="password2" class="form-control {% if form.password2.errors %}is-invalid{% endif %}" id="id_password2" required>
+                            {% if form.password2.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.password2.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <h4 class="mb-3 mt-4">Personal Information</h4>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_first_name_en" class="form-label">First Name (English)</label>
+                            <input type="text" name="first_name_en" class="form-control {% if form.first_name_en.errors %}is-invalid{% endif %}" id="id_first_name_en" required>
+                            {% if form.first_name_en.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.first_name_en.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_first_name_ar" class="form-label">First Name (Arabic)</label>
+                            <input type="text" name="first_name_ar" class="form-control {% if form.first_name_ar.errors %}is-invalid{% endif %}" id="id_first_name_ar" required>
+                            {% if form.first_name_ar.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.first_name_ar.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_second_name_en" class="form-label">Second Name (English)</label>
+                            <input type="text" name="second_name_en" class="form-control {% if form.second_name_en.errors %}is-invalid{% endif %}" id="id_second_name_en" required>
+                            {% if form.second_name_en.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.second_name_en.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_second_name_ar" class="form-label">Second Name (Arabic)</label>
+                            <input type="text" name="second_name_ar" class="form-control {% if form.second_name_ar.errors %}is-invalid{% endif %}" id="id_second_name_ar" required>
+                            {% if form.second_name_ar.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.second_name_ar.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_third_name_en" class="form-label">Third Name (English)</label>
+                            <input type="text" name="third_name_en" class="form-control {% if form.third_name_en.errors %}is-invalid{% endif %}" id="id_third_name_en" required>
+                            {% if form.third_name_en.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.third_name_en.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_third_name_ar" class="form-label">Third Name (Arabic)</label>
+                            <input type="text" name="third_name_ar" class="form-control {% if form.third_name_ar.errors %}is-invalid{% endif %}" id="id_third_name_ar" required>
+                            {% if form.third_name_ar.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.third_name_ar.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_last_name_en" class="form-label">Last Name (English)</label>
+                            <input type="text" name="last_name_en" class="form-control {% if form.last_name_en.errors %}is-invalid{% endif %}" id="id_last_name_en" required>
+                            {% if form.last_name_en.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.last_name_en.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_last_name_ar" class="form-label">Last Name (Arabic)</label>
+                            <input type="text" name="last_name_ar" class="form-control {% if form.last_name_ar.errors %}is-invalid{% endif %}" id="id_last_name_ar" required>
+                            {% if form.last_name_ar.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.last_name_ar.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <h4 class="mb-3 mt-4">Contact Information</h4>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_phone_number" class="form-label">Phone Number</label>
+                            <input type="text" name="phone_number" class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}" id="id_phone_number" required>
+                            {% if form.phone_number.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.phone_number.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_national_id" class="form-label">National ID</label>
+                            <input type="text" name="national_id" class="form-control {% if form.national_id.errors %}is-invalid{% endif %}" id="id_national_id" required>
+                            {% if form.national_id.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.national_id.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Register</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+                <p>KHCC Staff? <a href="{% url 'staff_register' %}">Register as KHCC Staff</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

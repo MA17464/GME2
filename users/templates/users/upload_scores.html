@@ -55,13 +55,11 @@
                 <div class="form-text">{{ form.score_file.help_text }}</div>
             </div>
             
-            <div class="mt-4 d-flex justify-content-between">
+            <div class="mt-4">
                 <a href="{% url 'dashboard' %}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
                 </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-upload me-1"></i>Upload Scores
-                </button>
+                <button type="submit" id="hidden-submit" style="display: none;"></button>
             </div>
         </form>
         
@@ -74,11 +72,11 @@ national_id,test_score
             </pre>
             
             <div class="mt-4">
-                <a href="{% url 'process_scores' %}" class="btn btn-success">
-                    <i class="fas fa-sync me-1"></i>Process Uploaded Scores
-                </a>
+                <button onclick="document.getElementById('hidden-submit').click();" class="btn btn-success">
+                    <i class="fas fa-upload me-1"></i>Upload and Process Scores
+                </button>
                 <p class="form-text mt-2">
-                    After uploading scores, click the button above to match scores with applicants and update interview records.
+                    Click the button above to upload your file and process scores to match with applicants and update interview records.
                 </p>
             </div>
         </div>

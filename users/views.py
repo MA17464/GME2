@@ -324,8 +324,9 @@ def upload_scores(request):
                     except Exception as e:
                         error_count += 1
                 
-                messages.success(request, f'Successfully processed {success_count} scores. {error_count} errors.')
-                return redirect('dashboard')
+                # Don't show a success message here, as we're redirecting to process_scores
+                # which will show its own message
+                return redirect('process_scores')
             
             except Exception as e:
                 messages.error(request, f'Error processing file: {str(e)}')
@@ -342,6 +343,7 @@ def process_scores(request):
     
     success_count = 0
     not_found_count = 0
+    total_processed = unprocessed_scores.count()
     
     for score in unprocessed_scores:
         # Find applicants with matching national ID
@@ -386,8 +388,15 @@ def process_scores(request):
             
         except Applicant.DoesNotExist:
             not_found_count += 1
+            # Mark as processed even if not found to avoid counting it again in future runs
+            score.is_processed = True
+            score.save()
     
-    messages.success(request, f'Updated {success_count} interview records. {not_found_count} applicants not found.')
+    if total_processed > 0:
+        messages.success(request, f'Successfully uploaded and processed scores. Updated {success_count} interview records. {not_found_count} applicants not found.')
+    else:
+        messages.info(request, 'No new scores to process. Please upload a file first.')
+    
     return redirect('dashboard')
 
 @login_required

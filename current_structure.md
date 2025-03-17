@@ -35,7 +35,6 @@
 │   ├── css
 │   ├── img
 │   └── js
-├── test.csv
 └── users
     ├── __init__.py
     ├── __pycache__

@@ -1,0 +1,149 @@
+{% extends 'users/base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Interviewer Dashboard - KHCC Graduate Medical Education{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Interviewer Dashboard</h2>
+
+<div class="dashboard-stats">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="fas fa-user-md"></i>
+                <div class="stat-value">{{ program.name }}</div>
+                <div class="stat-label">{{ program.get_program_type_display }} Program</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="fas fa-calendar-check"></i>
+                <div class="stat-value">{{ pending_applications.count }}</div>
+                <div class="stat-label">Pending Interviews</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="fas fa-check-circle"></i>
+                <div class="stat-value">{{ interviewed_applications.count }}</div>
+                <div class="stat-label">Completed Interviews</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab" aria-controls="pending" aria-selected="true">
+            <i class="fas fa-hourglass-half me-2"></i>Pending Interviews
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button" role="tab" aria-controls="completed" aria-selected="false">
+            <i class="fas fa-check-circle me-2"></i>Completed Interviews
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="dashboardTabsContent">
+    <!-- Pending Interviews Tab -->
+    <div class="tab-pane fade show active" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+        {% if pending_applications %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Applicant</th>
+                            <th>University</th>
+                            <th>GPA</th>
+                            <th>Test Score</th>
+                            <th>Submission Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for application in pending_applications %}
+                            <tr>
+                                <td>{{ application.applicant.username }}</td>
+                                <td>{{ application.university_name }}</td>
+                                <td>{{ application.gpa }}</td>
+                                <td>
+                                    {% if application.interviews.all %}
+                                        {{ application.interviews.first.test_score }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ application.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'conduct_interview' application.id %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-clipboard-list me-1"></i>Conduct Interview
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>No pending interviews.
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Completed Interviews Tab -->
+    <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
+        {% if interviewed_applications %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Applicant</th>
+                            <th>University</th>
+                            <th>GPA</th>
+                            <th>Test Score</th>
+                            <th>Interview Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for application in interviewed_applications %}
+                            <tr>
+                                <td>{{ application.applicant.username }}</td>
+                                <td>{{ application.university_name }}</td>
+                                <td>{{ application.gpa }}</td>
+                                <td>{{ application.interviews.first.test_score }}</td>
+                                <td>{{ application.interviews.first.updated_at|date:"M d, Y"|default:"-" }}</td>
+                                <td>
+                                    <a href="{% url 'conduct_interview' application.id %}" class="btn btn-sm btn-secondary">
+                                        <i class="fas fa-edit me-1"></i>Review/Edit Scores
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>No completed interviews.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Bootstrap tabs
+        const triggerTabList = [].slice.call(document.querySelectorAll('#dashboardTabs button'));
+        triggerTabList.forEach(function(triggerEl) {
+            const tabTrigger = new bootstrap.Tab(triggerEl);
+            triggerEl.addEventListener('click', function(event) {
+                event.preventDefault();
+                tabTrigger.show();
+            });
+        });
+    });
+</script>
+{% endblock %} 

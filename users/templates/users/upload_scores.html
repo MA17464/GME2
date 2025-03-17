@@ -1,0 +1,87 @@
+{% extends 'users/base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Upload Scores - KHCC Graduate Medical Education{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Upload Applicant Scores</h2>
+
+<div class="dashboard-stats">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="fas fa-upload"></i>
+                <div class="stat-value">CSV/Excel</div>
+                <div class="stat-label">Upload Format</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="fas fa-clipboard-check"></i>
+                <div class="stat-value">Test Scores</div>
+                <div class="stat-label">Required Data</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="fas fa-id-card"></i>
+                <div class="stat-value">National ID</div>
+                <div class="stat-label">Matching Field</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4>Upload Score File</h4>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <p><strong>Upload a CSV or Excel file containing applicant scores.</strong> The file should have the following columns:</p>
+            <ul>
+                <li><strong>national_id</strong>: The applicant's national ID</li>
+                <li><strong>test_score</strong>: The test score (0-75 for Residency, 0-40 for Fellowship)</li>
+            </ul>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                {{ form.score_file.errors }}
+                <label for="{{ form.score_file.id_for_label }}" class="form-label">{{ form.score_file.label }}</label>
+                {{ form.score_file|add_class:"form-control" }}
+                <div class="form-text">{{ form.score_file.help_text }}</div>
+            </div>
+            
+            <div class="mt-4 d-flex justify-content-between">
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-upload me-1"></i>Upload Scores
+                </button>
+            </div>
+        </form>
+        
+        <div class="mt-5">
+            <h5 class="border-bottom pb-2 mb-3">Sample CSV Format</h5>
+            <pre class="bg-light p-3 border rounded">
+national_id,test_score
+1234567890,65
+0987654321,70
+            </pre>
+            
+            <div class="mt-4">
+                <a href="{% url 'process_scores' %}" class="btn btn-success">
+                    <i class="fas fa-sync me-1"></i>Process Uploaded Scores
+                </a>
+                <p class="form-text mt-2">
+                    After uploading scores, click the button above to match scores with applicants and update interview records.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,4 +1,5 @@
 {% extends 'users/base.html' %}
+{% load widget_tweaks %}
 
 {% block title %}Dashboard - KHCC Graduate Medical Education{% endblock %}
 
@@ -100,33 +101,35 @@
     <div class="tab-pane fade" id="applications" role="tabpanel" aria-labelledby="applications-tab">
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Filter Applications</h5>
+                <h5 class="mb-0">Advanced Filtering</h5>
             </div>
             <div class="card-body">
                 <form method="get" class="row g-3">
-                    <div class="col-md-4">
-                        <label for="status" class="form-label">Status</label>
-                        <select name="status" id="status" class="form-select">
-                            <option value="">All Statuses</option>
-                            <option value="SUBMITTED" {% if request.GET.status == 'SUBMITTED' %}selected{% endif %}>Submitted</option>
-                            <option value="ELIGIBLE" {% if request.GET.status == 'ELIGIBLE' %}selected{% endif %}>Eligible</option>
-                            <option value="NOT_ELIGIBLE" {% if request.GET.status == 'NOT_ELIGIBLE' %}selected{% endif %}>Not Eligible</option>
-                            <option value="APPROVED" {% if request.GET.status == 'APPROVED' %}selected{% endif %}>Approved</option>
-                            <option value="REJECTED" {% if request.GET.status == 'REJECTED' %}selected{% endif %}>Rejected</option>
-                        </select>
+                    <div class="col-md-3">
+                        <label for="{{ filter_form.status.id_for_label }}" class="form-label">Status</label>
+                        {{ filter_form.status|add_class:"form-select" }}
                     </div>
-                    <div class="col-md-4">
-                        <label for="program" class="form-label">Program</label>
-                        <select name="program" id="program" class="form-select">
-                            <option value="">All Programs</option>
-                            {% for program in programs %}
-                                <option value="{{ program.id }}" {% if request.GET.program == program.id|stringformat:"i" %}selected{% endif %}>
-                                    {{ program.name }} ({{ program.get_program_type_display }})
-                                </option>
-                            {% endfor %}
-                        </select>
+                    <div class="col-md-3">
+                        <label for="{{ filter_form.program_type.id_for_label }}" class="form-label">Program Type</label>
+                        {{ filter_form.program_type|add_class:"form-select" }}
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
+                    <div class="col-md-3">
+                        <label for="{{ filter_form.program.id_for_label }}" class="form-label">Program</label>
+                        {{ filter_form.program|add_class:"form-select" }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ filter_form.gpa.id_for_label }}" class="form-label">GPA</label>
+                        {{ filter_form.gpa|add_class:"form-select" }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ filter_form.min_test_score.id_for_label }}" class="form-label">Min Test Score</label>
+                        {{ filter_form.min_test_score|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ filter_form.max_test_score.id_for_label }}" class="form-label">Max Test Score</label>
+                        {{ filter_form.max_test_score|add_class:"form-control" }}
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary me-2">
                             <i class="fas fa-filter me-1"></i>Filter
                         </button>
@@ -139,48 +142,98 @@
         </div>
         
         {% if applications %}
-            <div class="d-flex justify-content-end mb-3">
+            <div class="d-flex justify-content-end mb-3 gap-2">
                 <a href="{% url 'bulk_email' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="btn btn-primary">
                     <i class="fas fa-envelope me-1"></i>Send Bulk Email
                 </a>
+                <a href="{% url 'upload_scores' %}" class="btn btn-success">
+                    <i class="fas fa-upload me-1"></i>Upload Scores
+                </a>
+                <a href="{% url 'export_applications' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="btn btn-secondary">
+                    <i class="fas fa-download me-1"></i>Export CSV
+                </a>
             </div>
             
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead class="table-primary">
-                        <tr>
-                            <th>Applicant</th>
-                            <th>Program</th>
-                            <th>University</th>
-                            <th>GPA</th>
-                            <th>Status</th>
-                            <th>Submitted</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for application in applications %}
+            <form method="post" action="{% url 'bulk_update_status' %}">
+                {% csrf_token %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-primary">
                             <tr>
-                                <td>{{ application.applicant.username }}</td>
-                                <td>{{ application.program.name }} ({{ application.program.get_program_type_display }})</td>
-                                <td>{{ application.university_name }}</td>
-                                <td>{{ application.gpa }}</td>
-                                <td>
-                                    <span class="badge {% if application.status == 'SUBMITTED' %}bg-secondary{% elif application.status == 'ELIGIBLE' %}bg-success{% elif application.status == 'NOT_ELIGIBLE' %}bg-danger{% elif application.status == 'APPROVED' %}bg-primary{% elif application.status == 'REJECTED' %}bg-dark{% endif %}">
-                                        {{ application.get_status_display }}
-                                    </span>
-                                </td>
-                                <td>{{ application.created_at|date:"M d, Y" }}</td>
-                                <td>
-                                    <a href="{% url 'update_application_status' application.id %}" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-edit me-1"></i>Update Status
-                                    </a>
-                                </td>
+                                <th>
+                                    <input type="checkbox" id="select-all" class="form-check-input">
+                                </th>
+                                <th>Applicant</th>
+                                <th>Program</th>
+                                <th>University</th>
+                                <th>GPA</th>
+                                <th>Test Score</th>
+                                <th>Status</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            {% for application in applications %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" name="application_ids" value="{{ application.id }}" class="form-check-input application-checkbox">
+                                    </td>
+                                    <td>{{ application.applicant.username }}</td>
+                                    <td>{{ application.program.name }} ({{ application.program.get_program_type_display }})</td>
+                                    <td>{{ application.university_name }}</td>
+                                    <td>{{ application.gpa }}</td>
+                                    <td>
+                                        {% if application.interviews.all %}
+                                            {{ application.interviews.first.test_score }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if application.status == 'DRAFT' %}bg-warning{% elif application.status == 'SUBMITTED' %}bg-secondary{% elif application.status == 'ELIGIBLE' %}bg-success{% elif application.status == 'NOT_ELIGIBLE' %}bg-danger{% elif application.status == 'APPROVED' %}bg-primary{% elif application.status == 'REJECTED' %}bg-dark{% elif application.status == 'INVITED_FOR_INTERVIEW' %}bg-info{% endif %}">
+                                            {{ application.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ application.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'update_application_status' application.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit me-1"></i>Update Status
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Bulk Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="new_status" class="form-label">Change Status To</label>
+                                <select name="new_status" id="new_status" class="form-select">
+                                    <option value="">Select Status</option>
+                                    <option value="SUBMITTED">Submitted</option>
+                                    <option value="ELIGIBLE">Eligible</option>
+                                    <option value="NOT_ELIGIBLE">Not Eligible</option>
+                                    <option value="APPROVED">Approved</option>
+                                    <option value="REJECTED">Rejected</option>
+                                    <option value="INVITED_FOR_INTERVIEW">Invited for Interview</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary" id="bulk-update-btn" disabled>
+                                    <i class="fas fa-check me-1"></i>Update Selected Applications
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
         {% else %}
             <div class="alert alert-info">
                 <i class="fas fa-info-circle me-2"></i>No applications found matching the criteria.
@@ -188,4 +241,36 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Select all checkbox functionality
+        const selectAllCheckbox = document.getElementById('select-all');
+        const applicationCheckboxes = document.querySelectorAll('.application-checkbox');
+        const bulkUpdateBtn = document.getElementById('bulk-update-btn');
+        
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                applicationCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+                updateBulkButtonState();
+            });
+        }
+        
+        // Individual checkbox change
+        applicationCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateBulkButtonState);
+        });
+        
+        // Update bulk button state
+        function updateBulkButtonState() {
+            const anyChecked = Array.from(applicationCheckboxes).some(checkbox => checkbox.checked);
+            if (bulkUpdateBtn) {
+                bulkUpdateBtn.disabled = !anyChecked;
+            }
+        }
+    });
+</script>
 {% endblock %} 

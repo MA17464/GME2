@@ -1,7 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.core.validators import EmailValidator
-from .models import User, Applicant, Program, Application
+from .models import User, Applicant, Program, Application, Interview, ApplicantScore
+import csv
+import io
 
 class KHCCEmailValidator(EmailValidator):
     def validate_domain_part(self, domain_part):
@@ -112,6 +114,9 @@ class ApplicationForm(forms.ModelForm):
             except (ValueError, TypeError):
                 pass
         
+        # Update the GPA field to use a select widget
+        self.fields['gpa'].widget = forms.Select(choices=Application.GPA_CHOICES)
+
 class StaffApprovalForm(forms.ModelForm):
     class Meta:
         model = User
@@ -134,4 +139,122 @@ class BulkEmailForm(forms.Form):
         queryset = kwargs.pop('queryset', None)
         super().__init__(*args, **kwargs)
         if queryset:
-            self.fields['applications'].queryset = queryset 
+            self.fields['applications'].queryset = queryset
+
+class ResidencyInterviewForm(forms.ModelForm):
+    class Meta:
+        model = Interview
+        fields = [
+            'professional_appearance', 'interest', 'behavior', 'future_plans',
+            'personality', 'handling_emergencies', 'professional_attitude',
+            'knowledge', 'research', 'test_score', 'medical_school_score'
+        ]
+        widgets = {
+            'professional_appearance': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'interest': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'behavior': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'future_plans': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'personality': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'handling_emergencies': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'professional_attitude': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'knowledge': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'research': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'test_score': forms.NumberInput(attrs={'min': 0, 'max': 75}),
+            'medical_school_score': forms.NumberInput(attrs={'min': 0, 'max': 10}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['form_type'] = forms.CharField(
+            widget=forms.HiddenInput(),
+            initial='RESIDENCY'
+        )
+
+class FellowshipInterviewForm(forms.ModelForm):
+    class Meta:
+        model = Interview
+        fields = [
+            'professional_appearance', 'interest', 'behavior', 'future_plans',
+            'personality', 'handling_emergencies', 'professional_attitude',
+            'knowledge', 'research', 'test_score', 'medical_school_score',
+            'tentative_available_date'
+        ]
+        widgets = {
+            'professional_appearance': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'interest': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'behavior': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'future_plans': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'personality': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'handling_emergencies': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'professional_attitude': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'knowledge': forms.NumberInput(attrs={'min': 0, 'max': 5}),
+            'research': forms.NumberInput(attrs={'min': 0, 'max': 10}),
+            'test_score': forms.NumberInput(attrs={'min': 0, 'max': 40}),
+            'medical_school_score': forms.NumberInput(attrs={'min': 0, 'max': 10}),
+            'tentative_available_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['form_type'] = forms.CharField(
+            widget=forms.HiddenInput(),
+            initial='FELLOWSHIP'
+        )
+
+class BulkScoreUploadForm(forms.Form):
+    score_file = forms.FileField(
+        label='Upload CSV/Excel file',
+        help_text='File should contain columns: national_id, test_score'
+    )
+    
+    def clean_score_file(self):
+        file = self.cleaned_data.get('score_file')
+        
+        if not file:
+            return None
+            
+        # Check file extension
+        if not file.name.endswith(('.csv', '.xlsx', '.xls')):
+            raise forms.ValidationError('File must be a CSV or Excel file')
+            
+        # For CSV files, validate structure
+        if file.name.endswith('.csv'):
+            try:
+                # Read the CSV file
+                csv_file = io.StringIO(file.read().decode('utf-8'))
+                reader = csv.reader(csv_file)
+                
+                # Check header row
+                header = next(reader, None)
+                if not header or len(header) < 2:
+                    raise forms.ValidationError('CSV file must have at least 2 columns')
+                
+                # Check if required columns exist
+                required_columns = ['national_id', 'test_score']
+                for col in required_columns:
+                    if col.lower() not in [h.lower() for h in header]:
+                        raise forms.ValidationError(f'Missing required column: {col}')
+                
+                # Reset file pointer
+                file.seek(0)
+                
+            except Exception as e:
+                raise forms.ValidationError(f'Error reading CSV file: {str(e)}')
+                
+        return file
+
+class AdvancedFilterForm(forms.Form):
+    STATUS_CHOICES = [('', '---')] + [(status, label) for status, label in Application.STATUS_CHOICES if status != 'DRAFT']
+    PROGRAM_TYPE_CHOICES = [('', '---')] + list(Program.PROGRAM_TYPE_CHOICES)
+    GPA_CHOICES = [('', '---')] + list(Application.GPA_CHOICES)
+    
+    status = forms.ChoiceField(choices=STATUS_CHOICES, required=False)
+    program_type = forms.ChoiceField(choices=PROGRAM_TYPE_CHOICES, required=False)
+    program = forms.ModelChoiceField(queryset=Program.objects.all(), required=False)
+    gpa = forms.ChoiceField(choices=GPA_CHOICES, required=False)
+    min_test_score = forms.IntegerField(required=False, min_value=0)
+    max_test_score = forms.IntegerField(required=False, min_value=0)
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['program'].queryset = Program.objects.filter(status='ACTIVE') 

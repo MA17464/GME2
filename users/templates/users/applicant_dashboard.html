@@ -15,7 +15,7 @@
                         <h4>Application Status</h4>
                         <div class="d-flex align-items-center mt-3">
                             <div class="me-3">
-                                <span class="badge {% if application.status == 'SUBMITTED' %}bg-secondary{% elif application.status == 'ELIGIBLE' %}bg-success{% elif application.status == 'NOT_ELIGIBLE' %}bg-danger{% elif application.status == 'APPROVED' %}bg-primary{% elif application.status == 'REJECTED' %}bg-dark{% endif %} p-2" style="font-size: 1rem;">
+                                <span class="badge {% if application.status == 'DRAFT' %}bg-warning{% elif application.status == 'SUBMITTED' %}bg-secondary{% elif application.status == 'ELIGIBLE' %}bg-success{% elif application.status == 'NOT_ELIGIBLE' %}bg-danger{% elif application.status == 'APPROVED' %}bg-primary{% elif application.status == 'REJECTED' %}bg-dark{% elif application.status == 'INVITED_FOR_INTERVIEW' %}bg-info{% endif %} p-2" style="font-size: 1rem;">
                                     {{ application.get_status_display }}
                                 </span>
                             </div>
@@ -23,6 +23,17 @@
                                 <p class="mb-0">Last Updated: {{ application.updated_at|date:"F d, Y" }}</p>
                             </div>
                         </div>
+                        
+                        {% if application.status == 'DRAFT' %}
+                        <div class="mt-3">
+                            <form method="post" action="{% url 'submit_draft' application.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-paper-plane me-1"></i>Submit Application
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
                     </div>
                     <div class="col-md-6">
                         <h4>Program Information</h4>
@@ -56,6 +67,11 @@
                         <h4>Education Information</h4>
                         <p><strong>University:</strong> {{ application.university_name }}</p>
                         <p><strong>GPA:</strong> {{ application.gpa }}</p>
+                        {% if application.interviews.all %}
+                        <p><strong>Test Score:</strong> {{ application.interviews.first.test_score }}</p>
+                        {% else %}
+                        <p><strong>Test Score:</strong> Not available</p>
+                        {% endif %}
                     </div>
                 </div>
                 
@@ -123,7 +139,11 @@
                     </div>
                 </div>
                 
-                {% if application.status == 'SUBMITTED' %}
+                {% if application.status == 'DRAFT' %}
+                <div class="alert alert-warning mt-4">
+                    <i class="fas fa-exclamation-circle me-2"></i>Your application is saved as a draft. Please submit it when you're ready.
+                </div>
+                {% elif application.status == 'SUBMITTED' %}
                 <div class="alert alert-info mt-4">
                     <i class="fas fa-info-circle me-2"></i>Your application has been submitted and is currently under review. You will be notified once the status changes.
                 </div>
@@ -142,6 +162,10 @@
                 {% elif application.status == 'REJECTED' %}
                 <div class="alert alert-danger mt-4">
                     <i class="fas fa-times-circle me-2"></i>We regret to inform you that your application has been rejected. Please contact the GME office for more information.
+                </div>
+                {% elif application.status == 'INVITED_FOR_INTERVIEW' %}
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-calendar-check me-2"></i>Congratulations! You have been invited for an interview. The GME office will contact you with the interview details.
                 </div>
                 {% endif %}
             </div>

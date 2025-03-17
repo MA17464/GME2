@@ -1,0 +1,272 @@
+{% extends 'users/base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Interview Scoring - KHCC Graduate Medical Education{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Interview Scoring Form</h2>
+
+<div class="dashboard-stats">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <i class="fas fa-user"></i>
+                <div class="stat-value">{{ application.applicant.username }}</div>
+                <div class="stat-label">Applicant</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <i class="fas fa-graduation-cap"></i>
+                <div class="stat-value">{{ application.university_name }}</div>
+                <div class="stat-label">University</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <i class="fas fa-chart-line"></i>
+                <div class="stat-value">{{ application.gpa }}</div>
+                <div class="stat-label">GPA</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <i class="fas fa-user-md"></i>
+                <div class="stat-value">{{ program_type }}</div>
+                <div class="stat-label">Program Type</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4>{{ program_type }} Interview Scoring Form</h4>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if program_type == 'RESIDENCY' %}
+                <div class="alert alert-secondary">
+                    <p><strong>Scoring Guide for Residency Program:</strong></p>
+                    <ul>
+                        <li>Interview score: 15 points</li>
+                        <li>Test score: 75 points</li>
+                        <li>Medical School Score: 10 points</li>
+                        <li>Total: 100 points</li>
+                    </ul>
+                </div>
+            {% else %}
+                <div class="alert alert-secondary">
+                    <p><strong>Scoring Guide for Fellowship Program:</strong></p>
+                    <ul>
+                        <li>Interview score: 50 points</li>
+                        <li>Test score: 40 points</li>
+                        <li>Medical School Score: 10 points</li>
+                        <li>Total: 100 points</li>
+                    </ul>
+                </div>
+            {% endif %}
+            
+            <h5 class="mt-4 mb-3 border-bottom pb-2">Interview Areas</h5>
+            
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label for="{{ form.professional_appearance.id_for_label }}" class="form-label">
+                        <strong>Professional Appearance:</strong> 
+                        <small class="text-muted">Dress, attitude, avoid cross-legging, less stress, no stuttering, etc.</small>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    {{ form.professional_appearance.errors }}
+                    {{ form.professional_appearance|add_class:"form-control" }}
+                    <small class="text-muted">Score out of 5</small>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label for="{{ form.interest.id_for_label }}" class="form-label">
+                        <strong>Interest:</strong>
+                        <small class="text-muted">Why choose this specialty? Why our institution?</small>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    {{ form.interest.errors }}
+                    {{ form.interest|add_class:"form-control" }}
+                    <small class="text-muted">Score out of 5</small>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label for="{{ form.behavior.id_for_label }}" class="form-label">
+                        <strong>Behavior:</strong>
+                        <small class="text-muted">Experience with difficult patients, handling mistakes, dealing with colleagues</small>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    {{ form.behavior.errors }}
+                    {{ form.behavior|add_class:"form-control" }}
+                    <small class="text-muted">Score out of 5</small>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label for="{{ form.future_plans.id_for_label }}" class="form-label">
+                        <strong>Future Plans:</strong>
+                        <small class="text-muted">Where do you see yourself in 5 years? How would this training develop your career?</small>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    {{ form.future_plans.errors }}
+                    {{ form.future_plans|add_class:"form-control" }}
+                    <small class="text-muted">Score out of 5</small>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label for="{{ form.personality.id_for_label }}" class="form-label">
+                        <strong>Personality:</strong>
+                        <small class="text-muted">Strengths and weaknesses, learning experiences, hobbies</small>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    {{ form.personality.errors }}
+                    {{ form.personality|add_class:"form-control" }}
+                    <small class="text-muted">Score out of 5</small>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label for="{{ form.handling_emergencies.id_for_label }}" class="form-label">
+                        <strong>Handling Emergencies and Work Load:</strong>
+                        <small class="text-muted">Response to clinical scenarios, emergency management</small>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    {{ form.handling_emergencies.errors }}
+                    {{ form.handling_emergencies|add_class:"form-control" }}
+                    <small class="text-muted">Score out of 5</small>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label for="{{ form.professional_attitude.id_for_label }}" class="form-label">
+                        <strong>Professional Attitude:</strong>
+                        <small class="text-muted">Handling criticism, resolving stressful situations</small>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    {{ form.professional_attitude.errors }}
+                    {{ form.professional_attitude|add_class:"form-control" }}
+                    <small class="text-muted">Score out of 5</small>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label for="{{ form.knowledge.id_for_label }}" class="form-label">
+                        <strong>Knowledge:</strong>
+                        <small class="text-muted">Clinical scenarios, differential diagnosis, management</small>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    {{ form.knowledge.errors }}
+                    {{ form.knowledge|add_class:"form-control" }}
+                    <small class="text-muted">Score out of 5</small>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label for="{{ form.research.id_for_label }}" class="form-label">
+                        <strong>Research:</strong>
+                        <small class="text-muted">
+                            {% if program_type == 'RESIDENCY' %}
+                                One or more published papers = 5 marks, Ongoing project (IRB approved) = 2 marks
+                            {% else %}
+                                One or more published papers = 10 marks, Ongoing project (IRB approved) = 5 marks
+                            {% endif %}
+                        </small>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    {{ form.research.errors }}
+                    {{ form.research|add_class:"form-control" }}
+                    <small class="text-muted">
+                        Score out of {% if program_type == 'RESIDENCY' %}5{% else %}10{% endif %}
+                    </small>
+                </div>
+            </div>
+            
+            {% if program_type == 'FELLOWSHIP' %}
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label for="{{ form.tentative_available_date.id_for_label }}" class="form-label">
+                            <strong>Tentative Available Date:</strong>
+                        </label>
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.tentative_available_date.errors }}
+                        {{ form.tentative_available_date|add_class:"form-control" }}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <h5 class="mt-4 mb-3 border-bottom pb-2">Additional Scores</h5>
+            
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label for="{{ form.test_score.id_for_label }}" class="form-label">
+                        <strong>Test Score:</strong>
+                        <small class="text-muted">
+                            {% if program_type == 'RESIDENCY' %}
+                                Out of 75 points
+                            {% else %}
+                                Out of 40 points
+                            {% endif %}
+                        </small>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    {{ form.test_score.errors }}
+                    {{ form.test_score|add_class:"form-control" }}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label for="{{ form.medical_school_score.id_for_label }}" class="form-label">
+                        <strong>Medical School Score:</strong>
+                        <small class="text-muted">
+                            Excellent = 10 marks, Very Good = 8 marks, Good = 6 marks, Satisfactory = 4 marks
+                        </small>
+                    </label>
+                </div>
+                <div class="col-md-4">
+                    {{ form.medical_school_score.errors }}
+                    {{ form.medical_school_score|add_class:"form-control" }}
+                    <small class="text-muted">Score out of 10</small>
+                </div>
+            </div>
+            
+            {{ form.form_type }}
+            
+            <div class="mt-4 d-flex justify-content-between">
+                <a href="{% url 'interviewer_dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i>Save Scores
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

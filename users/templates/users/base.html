@@ -128,9 +128,17 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'manage_programs' %}">Programs</a>
                             </li>
+                        {% elif user.user_type == 'PROGRAM_DIRECTOR' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'interviewer_dashboard' %}">Program Applications</a>
+                            </li>
                         {% elif user.user_type == 'APPLICANT' %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'applicant_dashboard' %}">My Application</a>
+                            </li>
+                        {% elif user.user_type == 'INTERVIEWER' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'interviewer_dashboard' %}">Interviews</a>
                             </li>
                         {% endif %}
                         <li class="nav-item">

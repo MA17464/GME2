@@ -66,7 +66,12 @@
                         </div>
                         <div class="col-md-6">
                             <label for="id_gpa" class="form-label">GPA</label>
-                            <input type="number" name="gpa" id="id_gpa" class="form-control {% if form.gpa.errors %}is-invalid{% endif %}" step="0.01" min="0" max="4" required>
+                            <select name="gpa" id="id_gpa" class="form-select {% if form.gpa.errors %}is-invalid{% endif %}" required>
+                                <option value="" selected>Select GPA</option>
+                                {% for value, text in form.fields.gpa.choices %}
+                                    <option value="{{ value }}">{{ text }}</option>
+                                {% endfor %}
+                            </select>
                             {% if form.gpa.errors %}
                                 <div class="invalid-feedback">
                                     {% for error in form.gpa.errors %}
@@ -74,7 +79,7 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
-                            <div class="form-text">Enter your GPA on a scale of 4.0</div>
+                            <div class="form-text">Select your GPA level</div>
                         </div>
                     </div>
                     
@@ -142,7 +147,14 @@
                     {% endif %}
                     
                     <div class="d-grid gap-2 mt-4">
-                        <button type="submit" class="btn btn-primary">Submit Application</button>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary w-100">Submit Application</button>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" name="save_draft" class="btn btn-secondary w-100">Save as Draft</button>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>

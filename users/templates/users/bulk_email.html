@@ -66,6 +66,7 @@
                                             <th>Applicant</th>
                                             <th>Email</th>
                                             <th>Program</th>
+                                            <th>Test Score</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
@@ -81,6 +82,13 @@
                                                 <td>{{ application.applicant.username }}</td>
                                                 <td>{{ application.applicant.email }}</td>
                                                 <td>{{ application.program.name }}</td>
+                                                <td>
+                                                    {% if application.interviews.all %}
+                                                        {{ application.interviews.first.test_score }}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                </td>
                                                 <td>
                                                     <span class="badge {% if application.status == 'SUBMITTED' %}bg-secondary{% elif application.status == 'ELIGIBLE' %}bg-success{% elif application.status == 'NOT_ELIGIBLE' %}bg-danger{% elif application.status == 'APPROVED' %}bg-primary{% elif application.status == 'REJECTED' %}bg-dark{% endif %}">
                                                         {{ application.get_status_display }}

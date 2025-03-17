@@ -107,7 +107,7 @@
 
 2. **Education Information**:
    - University Name
-   - GPA (Acceptable, Good, Very Good, Excellent)
+   - GPA (Satisfactory, Good, Very Good, Excellent)
 
 3. **Required Documents**:
    - National ID/Identification Card

@@ -143,9 +143,6 @@
         
         {% if applications %}
             <div class="d-flex justify-content-end mb-3 gap-2">
-                <a href="{% url 'bulk_email' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="btn btn-primary">
-                    <i class="fas fa-envelope me-1"></i>Send Bulk Email
-                </a>
                 <a href="{% url 'upload_scores' %}" class="btn btn-success">
                     <i class="fas fa-upload me-1"></i>Upload Scores
                 </a>
@@ -154,8 +151,69 @@
                 </a>
             </div>
             
-            <form method="post" action="{% url 'bulk_update_status' %}">
+            <form method="post" action="{% url 'bulk_update_status' %}" id="bulk-action-form">
                 {% csrf_token %}
+                
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Bulk Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs mb-3" id="bulkActionTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="status-tab" data-bs-toggle="tab" data-bs-target="#status-tab-pane" type="button" role="tab" aria-controls="status-tab-pane" aria-selected="true">
+                                    <i class="fas fa-edit me-1"></i>Update Status
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="email-tab" data-bs-toggle="tab" data-bs-target="#email-tab-pane" type="button" role="tab" aria-controls="email-tab-pane" aria-selected="false">
+                                    <i class="fas fa-envelope me-1"></i>Send Email
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="bulkActionTabsContent">
+                            <div class="tab-pane fade show active" id="status-tab-pane" role="tabpanel" aria-labelledby="status-tab" tabindex="0">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label for="new_status" class="form-label">Change Status To</label>
+                                        <select name="new_status" id="new_status" class="form-select">
+                                            <option value="">Select Status</option>
+                                            <option value="SUBMITTED">Submitted</option>
+                                            <option value="ELIGIBLE">Eligible</option>
+                                            <option value="NOT_ELIGIBLE">Not Eligible</option>
+                                            <option value="APPROVED">Approved</option>
+                                            <option value="REJECTED">Rejected</option>
+                                            <option value="INVITED_FOR_INTERVIEW">Invited for Interview</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 d-flex align-items-end">
+                                        <button type="submit" name="action_type" value="update_status" class="btn btn-primary" id="bulk-update-btn" disabled onclick="return validateUpdateStatus()">
+                                            <i class="fas fa-check me-1"></i>Update Selected Applications
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="email-tab-pane" role="tabpanel" aria-labelledby="email-tab" tabindex="0">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="email_subject" class="form-label">Email Subject</label>
+                                        <input type="text" name="email_subject" id="email_subject" class="form-control">
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label for="email_message" class="form-label">Email Message</label>
+                                        <textarea name="email_message" id="email_message" class="form-control" rows="4"></textarea>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button type="submit" name="action_type" value="send_email" class="btn btn-primary" id="bulk-email-btn" disabled onclick="return validateSendEmail()">
+                                            <i class="fas fa-paper-plane me-1"></i>Send Email to Selected Applicants
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="table-responsive">
                     <table class="table table-striped table-hover">
                         <thead class="table-primary">
@@ -206,33 +264,6 @@
                         </tbody>
                     </table>
                 </div>
-                
-                <div class="card mt-3">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Bulk Actions</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label for="new_status" class="form-label">Change Status To</label>
-                                <select name="new_status" id="new_status" class="form-select">
-                                    <option value="">Select Status</option>
-                                    <option value="SUBMITTED">Submitted</option>
-                                    <option value="ELIGIBLE">Eligible</option>
-                                    <option value="NOT_ELIGIBLE">Not Eligible</option>
-                                    <option value="APPROVED">Approved</option>
-                                    <option value="REJECTED">Rejected</option>
-                                    <option value="INVITED_FOR_INTERVIEW">Invited for Interview</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary" id="bulk-update-btn" disabled>
-                                    <i class="fas fa-check me-1"></i>Update Selected Applications
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </form>
         {% else %}
             <div class="alert alert-info">
@@ -248,6 +279,7 @@
         const selectAllCheckbox = document.getElementById('select-all');
         const applicationCheckboxes = document.querySelectorAll('.application-checkbox');
         const bulkUpdateBtn = document.getElementById('bulk-update-btn');
+        const bulkEmailBtn = document.getElementById('bulk-email-btn');
         
         if (selectAllCheckbox) {
             selectAllCheckbox.addEventListener('change', function() {
@@ -270,7 +302,49 @@
             if (bulkUpdateBtn) {
                 bulkUpdateBtn.disabled = !anyChecked;
             }
+            if (bulkEmailBtn) {
+                bulkEmailBtn.disabled = !anyChecked;
+            }
         }
     });
+    
+    // Validation functions
+    function validateUpdateStatus() {
+        // Check if any applications are selected
+        const selectedApplications = document.querySelectorAll('input[name="application_ids"]:checked');
+        if (selectedApplications.length === 0) {
+            alert('Please select at least one application.');
+            return false;
+        }
+        
+        // Check if a status is selected
+        const statusSelect = document.getElementById('new_status');
+        if (!statusSelect.value) {
+            alert('Please select a status to update to.');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    function validateSendEmail() {
+        // Check if any applications are selected
+        const selectedApplications = document.querySelectorAll('input[name="application_ids"]:checked');
+        if (selectedApplications.length === 0) {
+            alert('Please select at least one application.');
+            return false;
+        }
+        
+        // Check if subject and message are provided
+        const subject = document.getElementById('email_subject').value;
+        const message = document.getElementById('email_message').value;
+        
+        if (!subject || !message) {
+            alert('Please provide both subject and message for the email.');
+            return false;
+        }
+        
+        return true;
+    }
 </script>
 {% endblock %} 

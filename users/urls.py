@@ -16,7 +16,6 @@ urlpatterns = [
     path('programs/edit/<int:program_id>/', views.edit_program, name='edit_program'),
     path('programs/delete/<int:program_id>/', views.delete_program, name='delete_program'),
     path('applications/update-status/<int:application_id>/', views.update_application_status, name='update_application_status'),
-    path('applications/bulk-email/', views.bulk_email, name='bulk_email'),
     path('applications/bulk-update-status/', views.bulk_update_status, name='bulk_update_status'),
     path('applications/upload-scores/', views.upload_scores, name='upload_scores'),
     path('applications/process-scores/', views.process_scores, name='process_scores'),

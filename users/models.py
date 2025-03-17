@@ -211,8 +211,8 @@ class Interview(models.Model):
         )
         
         if self.form_type == 'RESIDENCY':
-            # For Residency: interview score is out of 15
-            return min(base_score, 15)
+            # For Residency: interview score is out of 45
+            return min(base_score, 45)
         else:
             # For Fellowship: interview score is out of 50
             return min(base_score, 50)
@@ -222,11 +222,30 @@ class Interview(models.Model):
         interview_score = self.get_total_interview_score()
         
         if self.form_type == 'RESIDENCY':
-            # Residency: interview (15) + test (75) + medical school (10) = 100
-            return interview_score + self.test_score + self.medical_school_score
+            # Residency: interview (45/3 = 15) + test (75) + medical school (10) = 100
+            final_interview_score = round(interview_score / 3)
+            return final_interview_score + self.test_score + self.medical_school_score
         else:
             # Fellowship: interview (50) + test (40) + medical school (10) = 100
             return interview_score + self.test_score + self.medical_school_score
+            
+    def save(self, *args, **kwargs):
+        # If this is a new interview, set the medical school score based on GPA
+        if not self.pk and self.medical_school_score == 0 and self.application:
+            try:
+                gpa = self.application.gpa
+                if gpa == 'EXCELLENT':
+                    self.medical_school_score = 10
+                elif gpa == 'VERY_GOOD':
+                    self.medical_school_score = 8
+                elif gpa == 'GOOD':
+                    self.medical_school_score = 6
+                elif gpa == 'SATISFACTORY':
+                    self.medical_school_score = 4
+            except:
+                pass
+        
+        super().save(*args, **kwargs)
 
 class ApplicantScore(models.Model):
     """Model to store scores uploaded via CSV/Excel for applicants"""

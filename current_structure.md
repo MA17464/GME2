@@ -63,7 +63,6 @@
     │       ├── apply.html
     │       ├── approve_staff.html
     │       ├── base.html
-    │       ├── bulk_email.html
     │       ├── conduct_interview.html
     │       ├── dashboard.html
     │       ├── delete_program.html

@@ -16,6 +16,10 @@ from .forms import (
 import csv
 import pandas as pd
 import io
+import logging
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 def home(request):
     residency_programs = Program.objects.filter(program_type='RESIDENCY', status='ACTIVE')
@@ -230,58 +234,67 @@ def update_application_status(request, application_id):
 
 @login_required
 @user_passes_test(is_gme_staff)
-def bulk_email(request):
-    # Exclude draft applications from bulk emails
-    applications = Application.objects.exclude(status='DRAFT')
-    
-    # Apply filters if provided
-    status_filter = request.GET.get('status')
-    program_filter = request.GET.get('program')
-    
-    if status_filter:
-        applications = applications.filter(status=status_filter)
-    
-    if program_filter:
-        applications = applications.filter(program_id=program_filter)
-    
-    if request.method == 'POST':
-        form = BulkEmailForm(request.POST, queryset=applications)
-        if form.is_valid():
-            subject = form.cleaned_data['subject']
-            message = form.cleaned_data['message']
-            selected_applications = form.cleaned_data['applications']
-            
-            recipient_list = [app.applicant.email for app in selected_applications]
-            
-            # Send emails
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                recipient_list,
-                fail_silently=False,
-            )
-            
-            messages.success(request, f'Emails sent to {len(recipient_list)} applicants.')
-            return redirect('dashboard')
-    else:
-        form = BulkEmailForm(queryset=applications)
-    
-    return render(request, 'users/bulk_email.html', {'form': form})
-
-@login_required
-@user_passes_test(is_gme_staff)
 def bulk_update_status(request):
     if request.method == 'POST':
         application_ids = request.POST.getlist('application_ids')
         new_status = request.POST.get('new_status')
+        action_type = request.POST.get('action_type')
         
-        if application_ids and new_status:
-            # Update all selected applications, but exclude any that might be drafts
-            Application.objects.filter(id__in=application_ids).exclude(status='DRAFT').update(status=new_status)
-            messages.success(request, f'Successfully updated applications to {new_status}.')
-        else:
-            messages.error(request, 'Please select applications and a status.')
+        print(f"DEBUG: POST data: {request.POST}")
+        print(f"DEBUG: Bulk action request: action_type={action_type}, application_ids={application_ids}, new_status={new_status}")
+        
+        if not application_ids:
+            messages.error(request, 'Please select at least one application.')
+            return redirect('dashboard')
+            
+        if action_type == 'update_status':
+            if new_status:
+                try:
+                    # Update all selected applications, but exclude any that might be drafts
+                    applications_to_update = Application.objects.filter(id__in=application_ids).exclude(status='DRAFT')
+                    count = applications_to_update.count()
+                    
+                    print(f"DEBUG: Found {count} applications to update to status {new_status}")
+                    
+                    if count > 0:
+                        updated = applications_to_update.update(status=new_status)
+                        print(f"DEBUG: Updated {updated} applications to status {new_status}")
+                        messages.success(request, f'Successfully updated {count} applications to {new_status}.')
+                    else:
+                        messages.warning(request, 'No eligible applications were found to update.')
+                except Exception as e:
+                    print(f"ERROR: {str(e)}")
+                    messages.error(request, f'Error updating applications: {str(e)}')
+            else:
+                messages.error(request, 'Please select a status.')
+        elif action_type == 'send_email':
+            subject = request.POST.get('email_subject')
+            message = request.POST.get('email_message')
+            
+            if not subject or not message:
+                messages.error(request, 'Please provide both subject and message for the email.')
+                return redirect('dashboard')
+                
+            try:
+                # Get the applications
+                applications = Application.objects.filter(id__in=application_ids).exclude(status='DRAFT')
+                recipient_list = [app.applicant.email for app in applications]
+                
+                if recipient_list:
+                    # Send emails
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        recipient_list,
+                        fail_silently=False,
+                    )
+                    
+                    messages.success(request, f'Emails sent to {len(recipient_list)} applicants.')
+                else:
+                    messages.warning(request, 'No valid recipients found.')
+            except Exception as e:
+                messages.error(request, f'Error sending emails: {str(e)}')
         
         return redirect('dashboard')
     
@@ -313,13 +326,24 @@ def upload_scores(request):
                         # Use a default value for medical_school_score based on GPA
                         medical_school_score = 0
                         
-                        # Create or update the score
-                        ApplicantScore.objects.create(
-                            national_id=national_id,
-                            test_score=test_score,
-                            medical_school_score=medical_school_score,
-                            uploaded_by=request.user
-                        )
+                        # Check if a score already exists for this national ID
+                        existing_score = ApplicantScore.objects.filter(national_id=national_id).first()
+                        
+                        if existing_score:
+                            # Update the existing score
+                            existing_score.test_score = test_score
+                            existing_score.uploaded_by = request.user
+                            existing_score.is_processed = False  # Mark as unprocessed so it gets processed again
+                            existing_score.save()
+                        else:
+                            # Create a new score
+                            ApplicantScore.objects.create(
+                                national_id=national_id,
+                                test_score=test_score,
+                                medical_school_score=medical_school_score,
+                                uploaded_by=request.user
+                            )
+                        
                         success_count += 1
                     except Exception as e:
                         error_count += 1
@@ -392,6 +416,32 @@ def process_scores(request):
             score.is_processed = True
             score.save()
     
+    # Also update any existing interviews for applicants with processed scores
+    # This ensures all interviews have the latest test scores
+    processed_scores = ApplicantScore.objects.filter(is_processed=True)
+    updated_interviews = 0
+    
+    for score in processed_scores:
+        try:
+            applicant = Applicant.objects.get(national_id=score.national_id)
+            user = applicant.user
+            
+            # Find all interviews for this user's applications
+            interviews = Interview.objects.filter(application__applicant=user)
+            
+            for interview in interviews:
+                # Update the test score
+                if interview.test_score != score.test_score:
+                    interview.test_score = score.test_score
+                    interview.save()
+                    updated_interviews += 1
+                    
+        except Applicant.DoesNotExist:
+            continue
+    
+    if updated_interviews > 0:
+        messages.info(request, f'Additionally updated {updated_interviews} existing interviews with the latest scores.')
+    
     if total_processed > 0:
         messages.success(request, f'Successfully uploaded and processed scores. Updated {success_count} interview records. {not_found_count} applicants not found.')
     else:
@@ -454,6 +504,30 @@ def conduct_interview(request, application_id):
     # Determine which form to use based on program type
     form_class = ResidencyInterviewForm if application.program.program_type == 'RESIDENCY' else FellowshipInterviewForm
     
+    # Calculate medical school score based on GPA
+    medical_school_score = 0
+    if application.gpa == 'EXCELLENT':
+        medical_school_score = 10
+    elif application.gpa == 'VERY_GOOD':
+        medical_school_score = 8
+    elif application.gpa == 'GOOD':
+        medical_school_score = 6
+    elif application.gpa == 'SATISFACTORY':
+        medical_school_score = 4
+    
+    # Try to get the latest test score from applicant scores
+    latest_test_score = None
+    try:
+        applicant = Applicant.objects.get(user=application.applicant)
+        applicant_score = ApplicantScore.objects.filter(
+            national_id=applicant.national_id
+        ).order_by('-uploaded_at').first()
+        
+        if applicant_score:
+            latest_test_score = applicant_score.test_score
+    except (Applicant.DoesNotExist, Exception):
+        pass
+    
     if request.method == 'POST':
         if existing_interview:
             form = form_class(request.POST, instance=existing_interview)
@@ -465,15 +539,38 @@ def conduct_interview(request, application_id):
             interview.application = application
             interview.interviewer = request.user
             interview.form_type = application.program.program_type
+            
+            # Set medical school score if not already set
+            if not interview.medical_school_score:
+                interview.medical_school_score = medical_school_score
+            
+            # Always update test score with the latest value if available
+            if latest_test_score is not None:
+                interview.test_score = latest_test_score
+                
             interview.save()
             
             messages.success(request, 'Interview scores saved successfully.')
             return redirect('interviewer_dashboard')
     else:
         if existing_interview:
+            # If there's an existing interview but we have a newer test score, update it
+            if latest_test_score is not None:
+                existing_interview.test_score = latest_test_score
+                existing_interview.save()
+            
             form = form_class(instance=existing_interview)
         else:
-            form = form_class()
+            # Create a new form with initial values
+            initial_data = {
+                'medical_school_score': medical_school_score
+            }
+            
+            # Use the latest test score if available
+            if latest_test_score is not None:
+                initial_data['test_score'] = latest_test_score
+                
+            form = form_class(initial=initial_data)
     
     return render(request, 'users/conduct_interview.html', {
         'form': form,

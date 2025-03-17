@@ -155,7 +155,7 @@
 | Evaluation Area | Score |
 |-----------------|-------|
 | Test score | / 75 |
-| Interview score | / 15 |
+| Interview score | / 15 (45 divided by 3)|
 | **Medical School Score**: <br>Excellent = 10 marks<br>Very Good = 8 marks<br>Good = 6 marks<br>Satisfactory = 4 marks | / 10 |
 | **Total Score** | / 100 |
 
@@ -181,3 +181,8 @@
 | Test score (written/Oral) | / 40 |
 | **Medical School Score**: <br>Excellent = 10 marks<br>Very Good = 8 marks<br>Good = 6 marks<br>Satisfactory = 4 marks | / 10 |
 | **Total Score** | / 100 |
+
+
+**The Interview Score is the sum of all the scores in the interview form (same as Final Total).**
+**Test Score are automatically taken from the score that was uploaded by the GME Staff in the upload scores page.**
+**Medical School Score are automatically taken from the GPA of the applicant.**

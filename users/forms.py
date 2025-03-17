@@ -159,8 +159,8 @@ class ResidencyInterviewForm(forms.ModelForm):
             'professional_attitude': forms.NumberInput(attrs={'min': 0, 'max': 5}),
             'knowledge': forms.NumberInput(attrs={'min': 0, 'max': 5}),
             'research': forms.NumberInput(attrs={'min': 0, 'max': 5}),
-            'test_score': forms.NumberInput(attrs={'min': 0, 'max': 75}),
-            'medical_school_score': forms.NumberInput(attrs={'min': 0, 'max': 10}),
+            'test_score': forms.HiddenInput(attrs={'max': 75}),
+            'medical_school_score': forms.HiddenInput(attrs={'max': 10}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -189,8 +189,8 @@ class FellowshipInterviewForm(forms.ModelForm):
             'professional_attitude': forms.NumberInput(attrs={'min': 0, 'max': 5}),
             'knowledge': forms.NumberInput(attrs={'min': 0, 'max': 5}),
             'research': forms.NumberInput(attrs={'min': 0, 'max': 10}),
-            'test_score': forms.NumberInput(attrs={'min': 0, 'max': 40}),
-            'medical_school_score': forms.NumberInput(attrs={'min': 0, 'max': 10}),
+            'test_score': forms.HiddenInput(),
+            'medical_school_score': forms.HiddenInput(),
             'tentative_available_date': forms.DateInput(attrs={'type': 'date'}),
         }
     

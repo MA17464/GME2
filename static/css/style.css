@@ -646,4 +646,43 @@ main {
 .status-draft {
   background-color: #e2e3e5;
   color: #41464b;
+}
+
+/* ===== PROGRAM LISTS ===== */
+.program-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 0;
+}
+
+.program-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.program-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.program-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.program-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Make sure both cards in the row have the same height */
+.row .card.h-100 {
+  display: flex;
+  flex-direction: column;
+}
+
+.row .card.h-100 .card-body {
+  flex: 1 1 auto;
+}
+
+.row .card.h-100 .card-footer {
+  flex: 0 0 auto;
 } 

@@ -183,6 +183,20 @@ def manage_programs(request):
 
 @login_required
 @user_passes_test(is_gme_staff)
+def create_program(request):
+    if request.method == 'POST':
+        form = ProgramForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Program created successfully.')
+            return redirect('manage_programs')
+    else:
+        form = ProgramForm()
+    
+    return render(request, 'users/create_program.html', {'form': form})
+
+@login_required
+@user_passes_test(is_gme_staff)
 def edit_program(request, program_id):
     program = get_object_or_404(Program, id=program_id)
     
@@ -316,6 +330,7 @@ def upload_scores(request):
             try:
                 # Process the file based on its type
                 if score_file.name.endswith('.csv'):
+                    # Read CSV with pandas to ensure proper handling of data types
                     df = pd.read_csv(score_file)
                 else:  # Excel file
                     df = pd.read_excel(score_file)
@@ -326,8 +341,15 @@ def upload_scores(request):
                 
                 for _, row in df.iterrows():
                     try:
+                        # Convert to string to handle any numeric national IDs
                         national_id = str(row['national_id'])
+                        
+                        # Ensure test_score is read as an integer
                         test_score = int(row['test_score'])
+                        
+                        # Log the values for debugging
+                        logger.info(f"Processing score: National ID={national_id}, Test Score={test_score}")
+                        
                         # Use a default value for medical_school_score based on GPA
                         medical_school_score = 0
                         
@@ -335,22 +357,25 @@ def upload_scores(request):
                         existing_score = ApplicantScore.objects.filter(national_id=national_id).first()
                         
                         if existing_score:
-                            # Update the existing score
+                            # Update the existing score with the exact value from the CSV
                             existing_score.test_score = test_score
                             existing_score.uploaded_by = request.user
                             existing_score.is_processed = False  # Mark as unprocessed so it gets processed again
                             existing_score.save()
+                            logger.info(f"Updated existing score: {existing_score}")
                         else:
-                            # Create a new score
-                            ApplicantScore.objects.create(
+                            # Create a new score with the exact value from the CSV
+                            new_score = ApplicantScore.objects.create(
                                 national_id=national_id,
                                 test_score=test_score,
                                 medical_school_score=medical_school_score,
                                 uploaded_by=request.user
                             )
+                            logger.info(f"Created new score: {new_score}")
                         
                         success_count += 1
                     except Exception as e:
+                        logger.error(f"Error processing row: {str(e)}")
                         error_count += 1
                 
                 # Don't show a success message here, as we're redirecting to process_scores
@@ -358,6 +383,7 @@ def upload_scores(request):
                 return redirect('process_scores')
             
             except Exception as e:
+                logger.error(f"Error processing file: {str(e)}")
                 messages.error(request, f'Error processing file: {str(e)}')
     else:
         form = BulkScoreUploadForm()
@@ -392,18 +418,19 @@ def process_scores(request):
                     # Determine the form type based on program type
                     form_type = application.program.program_type
                     
-                    # Create a new interview record
+                    # Create a new interview record with the exact test score from the CSV
                     interview = Interview.objects.create(
                         application=application,
                         interviewer=User.objects.filter(user_type='GME_STAFF').first(),  # Use a GME staff as default interviewer
                         form_type=form_type,
-                        test_score=score.test_score,
+                        test_score=score.test_score,  # Use the exact score from the CSV
                         medical_school_score=score.medical_school_score
                     )
                     success_count += 1
                 else:
-                    # Update existing interviews
+                    # Update existing interviews with the exact test score from the CSV
                     for interview in interviews:
+                        # Always use the exact test score from the CSV
                         interview.test_score = score.test_score
                         # Keep the existing medical_school_score if it's already set
                         if interview.medical_school_score == 0:
@@ -435,7 +462,7 @@ def process_scores(request):
             interviews = Interview.objects.filter(application__applicant=user)
             
             for interview in interviews:
-                # Update the test score
+                # Always update with the exact test score from the CSV
                 if interview.test_score != score.test_score:
                     interview.test_score = score.test_score
                     interview.save()
@@ -495,16 +522,16 @@ def conduct_interview(request, application_id):
         messages.error(request, 'You are not authorized to interview this applicant.')
         return redirect('interviewer_dashboard')
     
-    # Check if the application status is 'INVITED_FOR_INTERVIEW'
-    if application.status != 'INVITED_FOR_INTERVIEW':
-        messages.error(request, 'This applicant is not currently scheduled for an interview.')
-        return redirect('interviewer_dashboard')
-    
     # Check if an interview already exists
     existing_interview = Interview.objects.filter(
         application=application,
         interviewer=request.user
     ).first()
+    
+    # Only check application status if this is a new interview
+    if not existing_interview and application.status != 'INVITED_FOR_INTERVIEW':
+        messages.error(request, 'This applicant is not currently scheduled for an interview.')
+        return redirect('interviewer_dashboard')
     
     # Determine which form to use based on program type
     form_class = ResidencyInterviewForm if application.program.program_type == 'RESIDENCY' else FellowshipInterviewForm
@@ -530,7 +557,9 @@ def conduct_interview(request, application_id):
         
         if applicant_score:
             latest_test_score = applicant_score.test_score
-    except (Applicant.DoesNotExist, Exception):
+            logger.info(f"Found latest test score for {applicant.national_id}: {latest_test_score}")
+    except (Applicant.DoesNotExist, Exception) as e:
+        logger.error(f"Error getting latest test score: {str(e)}")
         pass
     
     if request.method == 'POST':
@@ -552,17 +581,24 @@ def conduct_interview(request, application_id):
             # Always update test score with the latest value if available
             if latest_test_score is not None:
                 interview.test_score = latest_test_score
+                logger.info(f"Setting test score to {latest_test_score} for interview {interview}")
                 
             interview.save()
             
             messages.success(request, 'Interview scores saved successfully.')
-            return redirect('interviewer_dashboard')
+            
+            # Redirect based on user type
+            if request.user.user_type == 'PROGRAM_DIRECTOR':
+                return redirect('director_dashboard')
+            else:
+                return redirect('interviewer_dashboard')
     else:
         if existing_interview:
             # If there's an existing interview but we have a newer test score, update it
             if latest_test_score is not None:
                 existing_interview.test_score = latest_test_score
                 existing_interview.save()
+                logger.info(f"Updated existing interview test score to {latest_test_score}")
             
             form = form_class(instance=existing_interview)
         else:
@@ -574,6 +610,7 @@ def conduct_interview(request, application_id):
             # Use the latest test score if available
             if latest_test_score is not None:
                 initial_data['test_score'] = latest_test_score
+                logger.info(f"Setting initial test score to {latest_test_score}")
                 
             form = form_class(initial=initial_data)
     
@@ -607,7 +644,9 @@ def applicant_dashboard(request):
         if request.method == 'POST':
             form = ApplicationForm(request.POST, request.FILES)
             if form.is_valid():
+                # Create the application instance but don't save it yet
                 application = form.save(commit=False)
+                # Set the applicant
                 application.applicant = request.user
                 
                 # Check if saving as draft
@@ -618,6 +657,7 @@ def applicant_dashboard(request):
                     application.status = 'SUBMITTED'
                     messages.success(request, 'Your application has been submitted successfully.')
                 
+                # Now save the application
                 application.save()
                 return redirect('applicant_dashboard')
         else:
@@ -678,20 +718,70 @@ def export_applications(request):
     
     writer = csv.writer(response)
     writer.writerow([
-        'Applicant', 'Email', 'Program', 'University', 'GPA', 'Status', 
-        'Submission Date', 'Last Updated'
+        'Applicant ID', 'Username', 'Email', 'First Name (EN)', 'Second Name (EN)', 'Third Name (EN)', 'Last Name (EN)',
+        'First Name (AR)', 'Second Name (AR)', 'Third Name (AR)', 'Last Name (AR)', 'National ID', 'Phone Number',
+        'Program', 'Program Type', 'University', 'GPA', 'Status', 'Submission Date', 'Last Updated',
+        'Test Score', 'Medical School Score', 'Final Score', 'Final Score Submitted', 'Final Score Notes'
     ])
     
     for app in applications:
+        # Get applicant profile data
+        try:
+            profile = app.applicant.applicant_profile
+            first_name_en = profile.first_name_en
+            second_name_en = profile.second_name_en
+            third_name_en = profile.third_name_en
+            last_name_en = profile.last_name_en
+            first_name_ar = profile.first_name_ar
+            second_name_ar = profile.second_name_ar
+            third_name_ar = profile.third_name_ar
+            last_name_ar = profile.last_name_ar
+            national_id = profile.national_id
+        except:
+            first_name_en = second_name_en = third_name_en = last_name_en = ""
+            first_name_ar = second_name_ar = third_name_ar = last_name_ar = ""
+            national_id = ""
+        
+        # Get test score and medical school score from interviews
+        test_score = ""
+        medical_school_score = ""
+        if app.interviews.exists():
+            # Try to get scores from GME staff interview first
+            gme_interview = app.interviews.filter(interviewer__user_type='GME_STAFF').first()
+            if gme_interview:
+                test_score = gme_interview.test_score
+                medical_school_score = gme_interview.medical_school_score
+            else:
+                # If no GME staff interview, use the first interview
+                test_score = app.interviews.first().test_score
+                medical_school_score = app.interviews.first().medical_school_score
+        
         writer.writerow([
+            app.id,
             app.applicant.username,
             app.applicant.email,
+            first_name_en,
+            second_name_en,
+            third_name_en,
+            last_name_en,
+            first_name_ar,
+            second_name_ar,
+            third_name_ar,
+            last_name_ar,
+            national_id,
+            app.applicant.phone_number,
             app.program.name,
+            app.program.get_program_type_display(),
             app.university_name,
             app.get_gpa_display(),
             app.get_status_display(),
             app.created_at.strftime('%Y-%m-%d'),
-            app.updated_at.strftime('%Y-%m-%d')
+            app.updated_at.strftime('%Y-%m-%d'),
+            test_score,
+            medical_school_score,
+            app.final_score if app.final_score_submitted else "",
+            "Yes" if app.final_score_submitted else "No",
+            app.final_score_notes if app.final_score_notes else ""
         ])
     
     return response
@@ -706,16 +796,43 @@ def director_dashboard(request):
         messages.error(request, 'You are not assigned to any program.')
         return redirect('home')
     
-    # Get all applications for the program
-    applications = Application.objects.filter(program=program)
+    # Get applications for the director's program that are invited for interview
+    applications = Application.objects.filter(
+        program=program,
+        status='INVITED_FOR_INTERVIEW'
+    )
     
-    # Get applications that have been interviewed
-    interviewed_applications = applications.filter(interviews__isnull=False).distinct()
+    # Get all interviews for these applications
+    interviews = Interview.objects.filter(application__in=applications)
+    
+    # Create a dictionary to store interview counts per application
+    interview_counts = {}
+    for interview in interviews:
+        app_id = interview.application_id
+        if app_id in interview_counts:
+            interview_counts[app_id] += 1
+        else:
+            interview_counts[app_id] = 1
+    
+    # Get interviews conducted by this director
+    conducted_interviews = Interview.objects.filter(interviewer=request.user)
+    conducted_application_ids = conducted_interviews.values_list('application_id', flat=True)
+    
+    # Separate applications into those already interviewed by this director and those pending
+    interviewed_applications = applications.filter(id__in=conducted_application_ids)
+    pending_applications = applications.exclude(id__in=conducted_application_ids)
+    
+    # For each application, calculate and attach the average interview score
+    for application in applications:
+        application.interview_count = interview_counts.get(application.id, 0)
+        application.average_score = application.get_average_score()
     
     return render(request, 'users/director_dashboard.html', {
         'program': program,
+        'pending_applications': pending_applications,
+        'interviewed_applications': interviewed_applications,
         'applications': applications,
-        'interviewed_applications': interviewed_applications
+        'interview_counts': interview_counts
     })
 
 @login_required
@@ -728,12 +845,16 @@ def view_interview_results(request, application_id):
         messages.error(request, 'You are not authorized to view this application.')
         return redirect('director_dashboard')
     
-    # Get interviews excluding GME staff
+    # Get all interviews for this application, excluding GME staff
     interviews = application.interviews.filter(~Q(interviewer__user_type='GME_STAFF'))
+    
+    # Calculate the average score
+    average_score = application.get_average_score()
     
     return render(request, 'users/view_interview_results.html', {
         'application': application,
-        'interviews': interviews
+        'interviews': interviews,
+        'average_score': average_score
     })
 
 @login_required
@@ -746,23 +867,53 @@ def submit_final_score(request, application_id):
         messages.error(request, 'You are not authorized to submit scores for this application.')
         return redirect('director_dashboard')
     
-    # Check if final score has already been submitted
-    if application.final_score_submitted:
-        messages.error(request, 'Final score has already been submitted for this application.')
+    # Check if there are any interviews for this application
+    if not application.interviews.exists():
+        messages.error(request, 'Cannot submit final score as no interviews have been conducted yet.')
         return redirect('view_interview_results', application_id=application_id)
     
     if request.method == 'POST':
         try:
             final_score = float(request.POST.get('final_score'))
-            notes = request.POST.get('notes')
+            notes = request.POST.get('notes', '')
+            status = request.POST.get('status')
             
             if 0 <= final_score <= 100:
-                application.submit_final_score(final_score, notes)
-                messages.success(request, 'Final score submitted successfully.')
-                return redirect('view_interview_results', application_id=application_id)
+                if status in ['APPROVED', 'REJECTED']:
+                    # Submit final score and update status in one step
+                    # If already submitted, this will update the existing score
+                    application.submit_final_score(final_score, notes)
+                    application.status = status
+                    application.save()
+                    
+                    if application.final_score_submitted:
+                        messages.success(request, f'Final score and status updated successfully.')
+                    else:
+                        messages.success(request, f'Final score submitted and application {status.lower()}.')
+                    return redirect('view_interview_results', application_id=application_id)
+                else:
+                    messages.error(request, 'Please select a valid status (Approved or Rejected).')
             else:
                 messages.error(request, 'Final score must be between 0 and 100.')
         except (ValueError, TypeError):
             messages.error(request, 'Please enter a valid score.')
     
     return redirect('view_interview_results', application_id=application_id)
+
+@login_required
+@user_passes_test(is_gme_staff)
+def view_application(request, application_id):
+    application = get_object_or_404(Application, id=application_id)
+    
+    # Get file names for display
+    file_names = {
+        'national_id_document': application.get_file_name('national_id_document'),
+        'cv': application.get_file_name('cv'),
+        'payment_receipt': application.get_file_name('payment_receipt'),
+        'university_certificate': application.get_file_name('university_certificate'),
+    }
+    
+    return render(request, 'users/view_application.html', {
+        'application': application,
+        'file_names': file_names
+    })

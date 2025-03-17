@@ -4,139 +4,227 @@
 {% block title %}Interview Results - KHCC Graduate Medical Education{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-10">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h3 class="mb-0">Interview Results for {{ application.applicant.username }}</h3>
-            </div>
-            <div class="card-body">
-                <!-- Applicant Information -->
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h4>Applicant Information</h4>
-                        <p><strong>Name:</strong> {{ application.applicant.username }}</p>
-                        <p><strong>University:</strong> {{ application.university_name }}</p>
-                        <p><strong>GPA:</strong> {{ application.get_gpa_display }}</p>
-                        <p><strong>Program:</strong> {{ application.program.name }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h4>Score Summary</h4>
-                        <p><strong>Average Score:</strong> {{ application.get_average_score|floatformat:2 }}/100</p>
-                        <p><strong>Number of Interviews:</strong> {{ application.interviews.count }}</p>
-                        {% if application.final_score_submitted %}
-                            <p><strong>Final Score:</strong> {{ application.final_score|floatformat:2 }}/100</p>
-                        {% endif %}
-                    </div>
+<div class="fade-in">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-md">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Interview Results for {{ application.applicant.username }}</h3>
                 </div>
-
-                <!-- Individual Interview Results -->
-                <h4 class="mb-3">Individual Interview Results</h4>
-                {% for interview in interviews %}
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0">Interview by {{ interview.interviewer.username }}</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6>Interview Scores</h6>
-                                    <table class="table table-sm">
-                                        <tr>
-                                            <th>Professional Appearance:</th>
-                                            <td>{{ interview.professional_appearance }}/5</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Interest:</th>
-                                            <td>{{ interview.interest }}/5</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Behavior:</th>
-                                            <td>{{ interview.behavior }}/5</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Future Plans:</th>
-                                            <td>{{ interview.future_plans }}/5</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Personality:</th>
-                                            <td>{{ interview.personality }}/5</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Handling Emergencies:</th>
-                                            <td>{{ interview.handling_emergencies }}/5</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Professional Attitude:</th>
-                                            <td>{{ interview.professional_attitude }}/5</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Knowledge:</th>
-                                            <td>{{ interview.knowledge }}/5</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Research:</th>
-                                            <td>{{ interview.research }}/{% if interview.form_type == 'RESIDENCY' %}5{% else %}10{% endif %}</td>
-                                        </tr>
-                                    </table>
+                <div class="card-body">
+                    <!-- Applicant Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header">
+                                    <h4 class="mb-0"><i class="fas fa-user me-2 text-primary"></i>Applicant Information</h4>
                                 </div>
-                                <div class="col-md-6">
-                                    <h6>Additional Scores</h6>
-                                    <table class="table table-sm">
-                                        <tr>
-                                            <th>Test Score:</th>
-                                            <td>{{ interview.test_score }}/{% if interview.form_type == 'RESIDENCY' %}75{% else %}40{% endif %}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Medical School Score:</th>
-                                            <td>{{ interview.medical_school_score }}/10</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Total Score:</th>
-                                            <td>{{ interview.get_total_score }}/100</td>
-                                        </tr>
-                                    </table>
-                                    {% if interview.form_type == 'FELLOWSHIP' and interview.tentative_available_date %}
-                                        <p><strong>Tentative Available Date:</strong> {{ interview.tentative_available_date|date:"M d, Y" }}</p>
+                                <div class="card-body">
+                                    <p><strong>Name:</strong> {{ application.applicant.username }}</p>
+                                    <p><strong>University:</strong> {{ application.university_name }}</p>
+                                    <p><strong>GPA:</strong> {{ application.get_gpa_display }}</p>
+                                    <p class="mb-0"><strong>Program:</strong> {{ application.program.name }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-header">
+                                    <h4 class="mb-0"><i class="fas fa-chart-bar me-2 text-primary"></i>Score Summary</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span><strong>Average Score:</strong></span>
+                                        <span class="badge bg-primary p-2">{{ average_score|floatformat:2 }}/100</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span><strong>Number of Interviews:</strong></span>
+                                        <span class="badge bg-info p-2">{{ interviews.count }}</span>
+                                    </div>
+                                    {% if application.final_score_submitted %}
+                                        <div class="alert alert-success">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span><strong>Final Score:</strong></span>
+                                                <span class="badge bg-success p-2">{{ application.final_score|floatformat:2 }}/100</span>
+                                            </div>
+                                            <p class="mb-0"><strong>Submitted on:</strong> {{ application.final_score_submitted_at|date:"M d, Y H:i" }}</p>
+                                            {% if application.final_score_notes %}
+                                                <p class="mb-0 mt-2"><strong>Notes:</strong> {{ application.final_score_notes }}</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                    {% if application.status == 'APPROVED' %}
+                                        <div class="alert alert-success">
+                                            <p class="mb-0"><strong>Status:</strong> Approved</p>
+                                            <p class="mb-0"><strong>Approved on:</strong> {{ application.updated_at|date:"M d, Y H:i" }}</p>
+                                        </div>
+                                    {% elif application.status == 'REJECTED' %}
+                                        <div class="alert alert-danger">
+                                            <p class="mb-0"><strong>Status:</strong> Rejected</p>
+                                            <p class="mb-0"><strong>Rejected on:</strong> {{ application.updated_at|date:"M d, Y H:i" }}</p>
+                                        </div>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                     </div>
-                {% empty %}
-                    <div class="alert alert-info">
-                        No interview results available yet.
-                    </div>
-                {% endfor %}
 
-                <!-- Final Score Form -->
-                {% if not application.final_score_submitted %}
-                    <div class="mt-4">
-                        <h4>Submit Final Score</h4>
-                        <form method="post" action="{% url 'submit_final_score' application.id %}">
-                            {% csrf_token %}
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="final_score">Final Score (0-100)</label>
-                                        <input type="number" name="final_score" id="final_score" class="form-control" min="0" max="100" step="0.01" required>
-                                    </div>
+                    <!-- Individual Interview Results -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header">
+                            <h4 class="mb-0"><i class="fas fa-clipboard-list me-2 text-primary"></i>Individual Interview Results</h4>
+                        </div>
+                        <div class="card-body">
+                            {% if interviews %}
+                                <div class="accordion" id="interviewAccordion">
+                                    {% for interview in interviews %}
+                                        <div class="accordion-item mb-3">
+                                            <h2 class="accordion-header" id="heading{{ interview.id }}">
+                                                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ interview.id }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ interview.id }}">
+                                                    <div class="d-flex justify-content-between align-items-center w-100">
+                                                        <span><i class="fas fa-user-md me-2"></i>Interview by {{ interview.interviewer.username }}</span>
+                                                        <span class="badge bg-primary ms-2">{{ interview.get_total_score|floatformat:2 }}/100</span>
+                                                    </div>
+                                                </button>
+                                            </h2>
+                                            <div id="collapse{{ interview.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ interview.id }}" data-bs-parent="#interviewAccordion">
+                                                <div class="accordion-body">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <h6 class="mb-3 text-primary">Interview Scores</h6>
+                                                            {% if interview.interviewer == request.user %}
+                                                                <div class="mb-3">
+                                                                    <a href="{% url 'conduct_interview' interview.application.id %}" class="btn btn-sm btn-warning">
+                                                                        <i class="fas fa-edit me-1"></i>Edit Your Interview
+                                                                    </a>
+                                                                </div>
+                                                            {% endif %}
+                                                            <table class="table table-sm">
+                                                                <tr>
+                                                                    <th>Professional Appearance:</th>
+                                                                    <td>{{ interview.professional_appearance }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Interest:</th>
+                                                                    <td>{{ interview.interest }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Behavior:</th>
+                                                                    <td>{{ interview.behavior }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Future Plans:</th>
+                                                                    <td>{{ interview.future_plans }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Personality:</th>
+                                                                    <td>{{ interview.personality }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Handling Emergencies:</th>
+                                                                    <td>{{ interview.handling_emergencies }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Professional Attitude:</th>
+                                                                    <td>{{ interview.professional_attitude }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Knowledge:</th>
+                                                                    <td>{{ interview.knowledge }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Research:</th>
+                                                                    <td>{{ interview.research }}/{% if interview.form_type == 'RESIDENCY' %}5{% else %}10{% endif %}</td>
+                                                                </tr>
+                                                            </table>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <h6 class="mb-3 text-primary">Additional Scores</h6>
+                                                            <table class="table table-sm">
+                                                                <tr>
+                                                                    <th>Test Score:</th>
+                                                                    <td>{{ interview.test_score }}/{% if interview.form_type == 'RESIDENCY' %}75{% else %}40{% endif %}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Medical School Score:</th>
+                                                                    <td>{{ interview.medical_school_score }}/10</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Total Score:</th>
+                                                                    <td><strong>{{ interview.get_total_score }}/100</strong></td>
+                                                                </tr>
+                                                            </table>
+                                                            {% if interview.form_type == 'FELLOWSHIP' and interview.tentative_available_date %}
+                                                                <p><strong>Tentative Available Date:</strong> {{ interview.tentative_available_date|date:"M d, Y" }}</p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="notes">Notes (Optional)</label>
-                                        <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
-                                    </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <p class="mb-0"><i class="fas fa-info-circle me-2"></i>No interview results available yet.</p>
                                 </div>
-                            </div>
-                            <div class="mt-3">
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-check me-1"></i>Submit Final Score
-                                </button>
-                            </div>
-                        </form>
+                            {% endif %}
+                        </div>
                     </div>
-                {% endif %}
+
+                    <!-- Final Score Form -->
+                    {% if interviews.count > 0 %}
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h4 class="mb-0"><i class="fas fa-check-circle me-2"></i>{% if application.final_score_submitted %}Update{% else %}Submit{% endif %} Final Score and Status</h4>
+                            </div>
+                            <div class="card-body">
+                                {% if application.final_score_submitted %}
+                                    <div class="alert alert-info mb-3">
+                                        <i class="fas fa-info-circle me-2"></i>You can update the final score and status if needed.
+                                    </div>
+                                {% endif %}
+                                <form method="post" action="{% url 'submit_final_score' application.id %}">
+                                    {% csrf_token %}
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group mb-3">
+                                                <label for="final_score" class="form-label">Final Score (0-100)</label>
+                                                <input type="number" name="final_score" id="final_score" class="form-control" min="0" max="100" step="0.01" required value="{% if application.final_score_submitted %}{{ application.final_score }}{% else %}{{ average_score|floatformat:2 }}{% endif %}">
+                                                <small class="form-text">{% if application.final_score_submitted %}Current final score{% else %}The average score is pre-filled, but you can adjust it if needed{% endif %}.</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group mb-3">
+                                                <label for="status" class="form-label">Application Status</label>
+                                                <select name="status" id="status" class="form-select" required>
+                                                    <option value="">Choose a status...</option>
+                                                    <option value="APPROVED" {% if application.status == 'APPROVED' %}selected{% endif %}>Approve Application</option>
+                                                    <option value="REJECTED" {% if application.status == 'REJECTED' %}selected{% endif %}>Reject Application</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group mb-3">
+                                                <label for="notes" class="form-label">Notes (Optional)</label>
+                                                <textarea name="notes" id="notes" class="form-control" rows="3">{{ application.final_score_notes }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-check me-1"></i>{% if application.final_score_submitted %}Update{% else %}Submit{% endif %} Final Score and Status
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    {% elif interviews.count == 0 %}
+                        <div class="alert alert-warning mt-4">
+                            <p class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>You cannot submit a final score until at least one interview has been conducted.</p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>

@@ -6,6 +6,7 @@
 ├── db.sqlite3
 ├── gme
 │   ├── __init__.py
+│   ├── __pycache__
 │   ├── asgi.py
 │   ├── settings.py
 │   ├── urls.py
@@ -17,8 +18,14 @@
 │       ├── cv
 │       ├── national_id
 │       └── payment
+├── requirements.txt
+├── static
+│   ├── css
+│   │   └── style.css
+│   └── js
 └── users
     ├── __init__.py
+    ├── __pycache__
     ├── admin.py
     ├── apps.py
     ├── forms.py
@@ -34,7 +41,9 @@
     │   ├── 0009_auto_20250317_0809.py
     │   ├── 0010_auto_20250317_0818.py
     │   ├── 0011_alter_application_gpa.py
-    │   └── __init__.py
+    │   ├── 0012_application_final_score_and_more.py
+    │   ├── __init__.py
+    │   └── __pycache__
     ├── models.py
     ├── templates
     │   └── users
@@ -46,6 +55,7 @@
     │       ├── conduct_interview.html
     │       ├── dashboard.html
     │       ├── delete_program.html
+    │       ├── director_dashboard.html
     │       ├── edit_program.html
     │       ├── home.html
     │       ├── interviewer_dashboard.html
@@ -53,7 +63,9 @@
     │       ├── manage_programs.html
     │       ├── staff_register.html
     │       ├── update_application_status.html
-    │       └── upload_scores.html
+    │       ├── upload_scores.html
+    │       ├── view_application.html
+    │       └── view_interview_results.html
     ├── tests.py
     ├── urls.py
     └── views.py

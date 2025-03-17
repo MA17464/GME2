@@ -11,15 +11,16 @@ urlpatterns = [
     
     # GME Staff URLs
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('view-application/<int:application_id>/', views.view_application, name='view_application'),
+    path('upload-scores/', views.upload_scores, name='upload_scores'),
+    path('process-scores/', views.process_scores, name='process_scores'),
+    path('export-applications/', views.export_applications, name='export_applications'),
+    path('bulk-update-status/', views.bulk_update_status, name='bulk_update_status'),
     path('approve-staff/<int:user_id>/', views.approve_staff, name='approve_staff'),
-    path('programs/', views.manage_programs, name='manage_programs'),
-    path('programs/edit/<int:program_id>/', views.edit_program, name='edit_program'),
-    path('programs/delete/<int:program_id>/', views.delete_program, name='delete_program'),
-    path('applications/update-status/<int:application_id>/', views.update_application_status, name='update_application_status'),
-    path('applications/bulk-update-status/', views.bulk_update_status, name='bulk_update_status'),
-    path('applications/upload-scores/', views.upload_scores, name='upload_scores'),
-    path('applications/process-scores/', views.process_scores, name='process_scores'),
-    path('applications/export/', views.export_applications, name='export_applications'),
+    path('manage-programs/', views.manage_programs, name='manage_programs'),
+    path('create-program/', views.create_program, name='create_program'),
+    path('edit-program/<int:program_id>/', views.edit_program, name='edit_program'),
+    path('delete-program/<int:program_id>/', views.delete_program, name='delete_program'),
     
     # Interviewer URLs
     path('interviewer/dashboard/', views.interviewer_dashboard, name='interviewer_dashboard'),
@@ -36,4 +37,5 @@ urlpatterns = [
     path('director/dashboard/', views.director_dashboard, name='director_dashboard'),
     path('director/interview-results/<int:application_id>/', views.view_interview_results, name='view_interview_results'),
     path('director/submit-final-score/<int:application_id>/', views.submit_final_score, name='submit_final_score'),
+    path('update-application-status/<int:application_id>/', views.update_application_status, name='update_application_status'),
 ] 

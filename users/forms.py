@@ -130,7 +130,7 @@ class ApplicationForm(forms.ModelForm):
         cleaned_data = super().clean()
         program = cleaned_data.get('program')
         
-        if program:
+        if program and hasattr(self.instance, 'applicant') and self.instance.applicant:
             # Check if user has already applied to this program
             if self.instance.pk:  # If updating existing application
                 existing = Application.objects.filter(

@@ -29,6 +29,7 @@ urlpatterns = [
     # Applicant URLs
     path('applicant/dashboard/', views.applicant_dashboard, name='applicant_dashboard'),
     path('applicant/submit-draft/<int:application_id>/', views.submit_draft, name='submit_draft'),
+    path('applicant/edit-application/<int:application_id>/', views.edit_application, name='edit_application'),
     
     # AJAX
     path('ajax/load-programs/', views.load_programs, name='ajax_load_programs'),

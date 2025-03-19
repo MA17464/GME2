@@ -121,8 +121,9 @@
 3. **Required Documents**:
    - National ID/Identification Card
    - Curriculum Vitae (CV)
-   - Payment Receipt
-   - University Certificate
+   - Payment Receipt (Required for Residency, Not Required for Fellowship)
+   - University Certificate (Required for Residency, Not Required for Fellowship)
+   - Board Certification (Optional, Fellowship Only)
 
 4. **Personal Information**:
    - Name in English and Arabic (First, Second, Third, Last Name in both languages)

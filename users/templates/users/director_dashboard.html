@@ -80,15 +80,8 @@
                                         <td>{{ application.university_name }}</td>
                                         <td>{{ application.get_gpa_display }}</td>
                                         <td>
-                                            {% if application.interviews.exists %}
-                                                {% with test_score=None %}
-                                                    {% for interview in application.interviews.all %}
-                                                        {% if interview.interviewer.user_type == 'GME_STAFF' and not test_score %}
-                                                            {{ interview.test_score }}
-                                                            {% with test_score=interview.test_score %}{% endwith %}
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                {% endwith %}
+                                            {% if application.test_score %}
+                                                {{ application.test_score }}
                                             {% else %}
                                                 -
                                             {% endif %}
@@ -144,15 +137,8 @@
                                         <td>{{ application.university_name }}</td>
                                         <td>{{ application.get_gpa_display }}</td>
                                         <td>
-                                            {% if application.interviews.exists %}
-                                                {% with test_score=None %}
-                                                    {% for interview in application.interviews.all %}
-                                                        {% if interview.interviewer.user_type == 'GME_STAFF' and not test_score %}
-                                                            {{ interview.test_score }}
-                                                            {% with test_score=interview.test_score %}{% endwith %}
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                {% endwith %}
+                                            {% if application.test_score %}
+                                                {{ application.test_score }}
                                             {% else %}
                                                 -
                                             {% endif %}
@@ -180,12 +166,14 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <a href="{% url 'view_interview_results' application.id %}" class="btn btn-sm btn-primary">
-                                                <i class="fas fa-eye me-1"></i>View Results
-                                            </a>
-                                            <a href="{% url 'conduct_interview' application.id %}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit me-1"></i>Edit Interview
-                                            </a>
+                                            <div class="btn-group">
+                                                <a href="{% url 'view_interview_results' application.id %}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-eye me-1"></i>View Results
+                                                </a>
+                                                <a href="{% url 'conduct_interview' application.id %}" class="btn btn-sm btn-warning">
+                                                    <i class="fas fa-edit me-1"></i>Edit Interview
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                 {% endfor %}

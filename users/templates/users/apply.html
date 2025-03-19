@@ -1,18 +1,24 @@
 {% extends 'users/base.html' %}
 
-{% block title %}Apply for Program - KHCC Graduate Medical Education{% endblock %}
+{% block title %}
+{% if is_edit %}Edit Draft Application{% else %}Apply for Program{% endif %} - KHCC Graduate Medical Education
+{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header bg-primary text-white">
-                <h3 class="mb-0">Apply for Program</h3>
+                <h3 class="mb-0">{% if is_edit %}Edit Draft Application{% else %}Apply for Program{% endif %}</h3>
             </div>
             <div class="card-body">
                 <div class="alert alert-info mb-4">
                     <i class="fas fa-info-circle me-2"></i>
+                    {% if is_edit %}
+                    You can update your draft application below. All fields marked with an asterisk (*) are required when submitting.
+                    {% else %}
                     Please complete all fields and upload the required documents to submit your application.
+                    {% endif %}
                 </div>
                 
                 <form method="post" enctype="multipart/form-data" novalidate>
@@ -25,7 +31,7 @@
                             <select name="program_type" id="id_program_type" class="form-select {% if form.program_type.errors %}is-invalid{% endif %}" required>
                                 <option value="" selected>Select Program Type</option>
                                 {% for value, text in form.program_type.field.choices %}
-                                    <option value="{{ value }}">{{ text }}</option>
+                                    <option value="{{ value }}" {% if application and application.program.program_type == value %}selected{% endif %}>{{ text }}</option>
                                 {% endfor %}
                             </select>
                             {% if form.program_type.errors %}
@@ -39,7 +45,11 @@
                         <div class="col-md-6">
                             <label for="id_program" class="form-label">Program</label>
                             <select name="program" id="id_program" class="form-select {% if form.program.errors %}is-invalid{% endif %}" required>
+                                {% if application and application.program %}
+                                <option value="{{ application.program.id }}" selected>{{ application.program.name }}</option>
+                                {% else %}
                                 <option value="" selected>Select Program Type First</option>
+                                {% endif %}
                             </select>
                             {% if form.program.errors %}
                                 <div class="invalid-feedback">
@@ -55,7 +65,7 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="id_university_name" class="form-label">University Name</label>
-                            <input type="text" name="university_name" id="id_university_name" class="form-control {% if form.university_name.errors %}is-invalid{% endif %}" required>
+                            <input type="text" name="university_name" id="id_university_name" value="{% if application %}{{ application.university_name }}{% endif %}" class="form-control {% if form.university_name.errors %}is-invalid{% endif %}" required>
                             {% if form.university_name.errors %}
                                 <div class="invalid-feedback">
                                     {% for error in form.university_name.errors %}
@@ -69,7 +79,7 @@
                             <select name="gpa" id="id_gpa" class="form-select {% if form.gpa.errors %}is-invalid{% endif %}" required>
                                 <option value="" selected>Select GPA</option>
                                 {% for value, text in form.fields.gpa.choices %}
-                                    <option value="{{ value }}">{{ text }}</option>
+                                    <option value="{{ value }}" {% if application and application.gpa == value %}selected{% endif %}>{{ text }}</option>
                                 {% endfor %}
                             </select>
                             {% if form.gpa.errors %}
@@ -87,7 +97,12 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="id_national_id_document" class="form-label">National ID/Identification Card</label>
-                            <input type="file" name="national_id_document" id="id_national_id_document" class="form-control {% if form.national_id_document.errors %}is-invalid{% endif %}" required>
+                            <input type="file" name="national_id_document" id="id_national_id_document" class="form-control {% if form.national_id_document.errors %}is-invalid{% endif %}" {% if not is_edit %}required{% endif %}>
+                            {% if application.national_id_document %}
+                            <div class="form-text text-success">
+                                <i class="fas fa-check"></i> Document already uploaded. Upload a new one to replace it.
+                            </div>
+                            {% endif %}
                             {% if form.national_id_document.errors %}
                                 <div class="invalid-feedback">
                                     {% for error in form.national_id_document.errors %}
@@ -99,7 +114,12 @@
                         </div>
                         <div class="col-md-6">
                             <label for="id_cv" class="form-label">Curriculum Vitae (CV)</label>
-                            <input type="file" name="cv" id="id_cv" class="form-control {% if form.cv.errors %}is-invalid{% endif %}" required>
+                            <input type="file" name="cv" id="id_cv" class="form-control {% if form.cv.errors %}is-invalid{% endif %}" {% if not is_edit %}required{% endif %}>
+                            {% if application.cv %}
+                            <div class="form-text text-success">
+                                <i class="fas fa-check"></i> Document already uploaded. Upload a new one to replace it.
+                            </div>
+                            {% endif %}
                             {% if form.cv.errors %}
                                 <div class="invalid-feedback">
                                     {% for error in form.cv.errors %}
@@ -114,7 +134,12 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="id_payment_receipt" class="form-label">Payment Receipt</label>
-                            <input type="file" name="payment_receipt" id="id_payment_receipt" class="form-control {% if form.payment_receipt.errors %}is-invalid{% endif %}" required>
+                            <input type="file" name="payment_receipt" id="id_payment_receipt" class="form-control {% if form.payment_receipt.errors %}is-invalid{% endif %}" {% if not is_edit %}required{% endif %}>
+                            {% if application.payment_receipt %}
+                            <div class="form-text text-success">
+                                <i class="fas fa-check"></i> Document already uploaded. Upload a new one to replace it.
+                            </div>
+                            {% endif %}
                             {% if form.payment_receipt.errors %}
                                 <div class="invalid-feedback">
                                     {% for error in form.payment_receipt.errors %}
@@ -126,7 +151,12 @@
                         </div>
                         <div class="col-md-6">
                             <label for="id_university_certificate" class="form-label">University Certificate</label>
-                            <input type="file" name="university_certificate" id="id_university_certificate" class="form-control {% if form.university_certificate.errors %}is-invalid{% endif %}" required>
+                            <input type="file" name="university_certificate" id="id_university_certificate" class="form-control {% if form.university_certificate.errors %}is-invalid{% endif %}" {% if not is_edit %}required{% endif %}>
+                            {% if application.university_certificate %}
+                            <div class="form-text text-success">
+                                <i class="fas fa-check"></i> Document already uploaded. Upload a new one to replace it.
+                            </div>
+                            {% endif %}
                             {% if form.university_certificate.errors %}
                                 <div class="invalid-feedback">
                                     {% for error in form.university_certificate.errors %}
@@ -142,6 +172,11 @@
                         <div class="col-md-6">
                             <label for="id_board_certification" class="form-label">Board Certification (Optional)</label>
                             <input type="file" name="board_certification" id="id_board_certification" class="form-control {% if form.board_certification.errors %}is-invalid{% endif %}">
+                            {% if application.board_certification %}
+                            <div class="form-text text-success">
+                                <i class="fas fa-check"></i> Document already uploaded. Upload a new one to replace it.
+                            </div>
+                            {% endif %}
                             {% if form.board_certification.errors %}
                                 <div class="invalid-feedback">
                                     {% for error in form.board_certification.errors %}
@@ -164,7 +199,7 @@
                     <div class="d-grid gap-2 mt-4">
                         <div class="row">
                             <div class="col-md-6">
-                                <button type="submit" class="btn btn-primary w-100">Submit Application</button>
+                                <button type="submit" class="btn btn-primary w-100">{% if is_edit %}Update and Submit{% else %}Submit Application{% endif %}</button>
                             </div>
                             <div class="col-md-6">
                                 <button type="submit" name="save_draft" class="btn btn-secondary w-100">Save as Draft</button>
@@ -207,6 +242,16 @@
                     } else {
                         programSelect.append('<option value="">No programs available</option>');
                     }
+                    
+                    // If editing, select the current program if it matches the program type
+                    {% if application %}
+                    const currentProgramId = "{{ application.program.id }}";
+                    const currentProgramType = "{{ application.program.program_type }}";
+                    
+                    if (programTypeId === currentProgramType) {
+                        programSelect.val(currentProgramId);
+                    }
+                    {% endif %}
                 },
                 error: function(error) {
                     console.log("Error loading programs:", error);
@@ -248,6 +293,11 @@
         
         programTypeSelect.addEventListener('change', updateDocumentFields);
         updateDocumentFields(); // Initial state
+        
+        // If editing, trigger the change event to load the programs
+        {% if application %}
+        $(programTypeSelect).trigger('change');
+        {% endif %}
     });
 </script>
 {% endblock %}

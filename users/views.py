@@ -680,6 +680,59 @@ def applicant_dashboard(request):
 
 @login_required
 @user_passes_test(is_applicant)
+def edit_application(request, application_id):
+    # Get the application and verify it belongs to the user and is in DRAFT status
+    application = get_object_or_404(
+        Application, 
+        id=application_id, 
+        applicant=request.user, 
+        status='DRAFT'
+    )
+    
+    if request.method == 'POST':
+        form = ApplicationForm(
+            request.POST, 
+            request.FILES, 
+            instance=application
+        )
+        
+        if form.is_valid():
+            # Update the application
+            application = form.save(commit=False)
+            
+            # Check if saving as draft or submitting
+            if 'save_draft' in request.POST:
+                application.status = 'DRAFT'
+                messages.success(request, 'Your draft application has been updated.')
+            else:
+                application.status = 'SUBMITTED'
+                messages.success(request, 'Your application has been submitted successfully.')
+            
+            # Handle optional files for fellowship programs
+            if application.program.program_type == 'FELLOWSHIP':
+                # Keep existing files if no new ones were uploaded
+                if 'payment_receipt' not in request.FILES:
+                    application.payment_receipt = application.payment_receipt
+                if 'university_certificate' not in request.FILES:
+                    application.university_certificate = application.university_certificate
+            
+            application.save()
+            return redirect('applicant_dashboard')
+    else:
+        # Initialize the form with the existing application data
+        initial_data = {
+            'program_type': application.program.program_type,
+        }
+        form = ApplicationForm(instance=application, initial=initial_data)
+    
+    return render(request, 'users/apply.html', {
+        'form': form,
+        'application': application,
+        'is_edit': True
+    })
+
+@login_required
+@user_passes_test(is_applicant)
 def submit_draft(request, application_id):
     application = get_object_or_404(Application, id=application_id, applicant=request.user, status='DRAFT')
     
@@ -809,39 +862,44 @@ def director_dashboard(request):
     applications = Application.objects.filter(
         program=program,
         status='INVITED_FOR_INTERVIEW'
+    ).prefetch_related(
+        'interviews',
+        'interviews__interviewer'
     )
     
-    # Get all interviews for these applications
-    interviews = Interview.objects.filter(application__in=applications)
-    
-    # Create a dictionary to store interview counts per application
-    interview_counts = {}
-    for interview in interviews:
-        app_id = interview.application_id
-        if app_id in interview_counts:
-            interview_counts[app_id] += 1
+    # Process each application to calculate interview counts and scores
+    for application in applications:
+        # Calculate interview count (excluding GME staff)
+        non_gme_interviews = [i for i in application.interviews.all() if i.interviewer.user_type != 'GME_STAFF']
+        application.interview_count = len(non_gme_interviews)
+        
+        # Get test score from GME staff interview
+        gme_interview = next((i for i in application.interviews.all() if i.interviewer.user_type == 'GME_STAFF'), None)
+        application.test_score = gme_interview.test_score if gme_interview else None
+        
+        # Calculate average score
+        if non_gme_interviews:
+            total_score = sum(interview.get_total_score() for interview in non_gme_interviews)
+            application.average_score = total_score / len(non_gme_interviews)
         else:
-            interview_counts[app_id] = 1
+            application.average_score = None
     
     # Get interviews conducted by this director
-    conducted_interviews = Interview.objects.filter(interviewer=request.user)
+    conducted_interviews = Interview.objects.filter(
+        interviewer=request.user,
+        application__in=applications
+    )
     conducted_application_ids = conducted_interviews.values_list('application_id', flat=True)
     
     # Separate applications into those already interviewed by this director and those pending
-    interviewed_applications = applications.filter(id__in=conducted_application_ids)
-    pending_applications = applications.exclude(id__in=conducted_application_ids)
-    
-    # For each application, calculate and attach the average interview score
-    for application in applications:
-        application.interview_count = interview_counts.get(application.id, 0)
-        application.average_score = application.get_average_score()
+    interviewed_applications = [app for app in applications if app.id in conducted_application_ids]
+    pending_applications = [app for app in applications if app.id not in conducted_application_ids]
     
     return render(request, 'users/director_dashboard.html', {
         'program': program,
         'pending_applications': pending_applications,
         'interviewed_applications': interviewed_applications,
-        'applications': applications,
-        'interview_counts': interview_counts
+        'applications': applications
     })
 
 @login_required

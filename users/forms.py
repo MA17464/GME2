@@ -101,6 +101,7 @@ class ProgramForm(forms.ModelForm):
 class ApplicationForm(forms.ModelForm):
     program_type = forms.ChoiceField(choices=Program.PROGRAM_TYPE_CHOICES)
     program = forms.ModelChoiceField(queryset=Program.objects.none())
+    is_draft = forms.BooleanField(required=False, widget=forms.HiddenInput())
     
     class Meta:
         model = Application
@@ -126,8 +127,18 @@ class ApplicationForm(forms.ModelForm):
                 'accept': '.pdf,.jpg,.jpeg,.png'
             })
         
+        # Check if saving as draft (from POST data or instance status)
+        is_draft = False
+        if self.data.get('save_draft') or (self.instance and self.instance.pk and self.instance.status == 'DRAFT'):
+            is_draft = True
+            
+        # Make fields not required if saving as draft
+        if is_draft:
+            for field_name in self.fields:
+                if field_name not in ['program_type', 'program']:
+                    self.fields[field_name].required = False
         # Make certain fields required only for residency programs
-        if self.instance.pk and self.instance.program.program_type == 'RESIDENCY':
+        elif self.instance.pk and self.instance.program.program_type == 'RESIDENCY':
             self.fields['payment_receipt'].required = True
             self.fields['university_certificate'].required = True
         else:
@@ -139,7 +150,12 @@ class ApplicationForm(forms.ModelForm):
         cleaned_data = super().clean()
         program = cleaned_data.get('program')
         program_type = cleaned_data.get('program_type')
+        is_draft = 'save_draft' in self.data or cleaned_data.get('is_draft', False)
         
+        # Skip validation if saving as draft
+        if is_draft:
+            return cleaned_data
+            
         if program and hasattr(self.instance, 'applicant') and self.instance.applicant:
             # Check if user has already applied to this program
             if self.instance.pk:  # If updating existing application
@@ -162,10 +178,6 @@ class ApplicationForm(forms.ModelForm):
                 self.add_error('payment_receipt', 'Payment receipt is required for residency programs.')
             if not cleaned_data.get('university_certificate'):
                 self.add_error('university_certificate', 'University certificate is required for residency programs.')
-        # Remove the validation that makes board certification required for fellowship programs
-        # elif program_type == 'FELLOWSHIP':
-        #     if not cleaned_data.get('board_certification'):
-        #         self.add_error('board_certification', 'Board certification is required for fellowship programs.')
         
         return cleaned_data
 

@@ -1,198 +1,145 @@
 {% extends 'users/base.html' %}
 
-{% block title %}My Application - KHCC Graduate Medical Education{% endblock %}
+{% block title %}Applicant Dashboard - KHCC Graduate Medical Education{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-10">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h3 class="mb-0">My Application</h3>
-            </div>
-            <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h4>Application Status</h4>
-                        <div class="d-flex align-items-center mt-3">
-                            <div class="me-3">
-                                <span class="badge {% if application.status == 'DRAFT' %}bg-warning{% elif application.status == 'SUBMITTED' %}bg-secondary{% elif application.status == 'ELIGIBLE' %}bg-success{% elif application.status == 'NOT_ELIGIBLE' %}bg-danger{% elif application.status == 'APPROVED' %}bg-primary{% elif application.status == 'REJECTED' %}bg-dark{% elif application.status == 'INVITED_FOR_INTERVIEW' %}bg-info{% endif %} p-2" style="font-size: 1rem;">
-                                    {{ application.get_status_display }}
-                                </span>
-                            </div>
-                            <div>
-                                <p class="mb-0">Last Updated: {{ application.updated_at|date:"F d, Y" }}</p>
-                            </div>
-                        </div>
-                        
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">My Application</h3>
+                </div>
+                <div class="card-body">
+                    {% if application %}
                         {% if application.status == 'DRAFT' %}
-                        <div class="mt-3">
-                            <form method="post" action="{% url 'submit_draft' application.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-paper-plane me-1"></i>Submit Application
-                                </button>
-                            </form>
-                        </div>
+                            <div class="alert alert-warning mb-4">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Your application is currently saved as a draft. You can edit it or submit it when ready.
+                            </div>
                         {% endif %}
-                    </div>
-                    <div class="col-md-6">
-                        <h4>Program Information</h4>
-                        <p><strong>Program:</strong> {{ application.program.name }}</p>
-                        <p><strong>Type:</strong> {{ application.program.get_program_type_display }}</p>
-                        <p><strong>Duration:</strong> {{ application.program.start_date|date:"M d, Y" }} to {{ application.program.end_date|date:"M d, Y" }}</p>
-                    </div>
-                </div>
-                
-                <hr>
-                
-                <div class="row mb-4">
-                    <div class="col-md-12">
-                        <h4>Personal Information</h4>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Name (English):</strong> {{ user.applicant_profile.first_name_en }} {{ user.applicant_profile.second_name_en }} {{ user.applicant_profile.third_name_en }} {{ user.applicant_profile.last_name_en }}</p>
-                        <p><strong>Name (Arabic):</strong> {{ user.applicant_profile.first_name_ar }} {{ user.applicant_profile.second_name_ar }} {{ user.applicant_profile.third_name_ar }} {{ user.applicant_profile.last_name_ar }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Email:</strong> {{ user.email }}</p>
-                        <p><strong>Phone:</strong> {{ user.phone_number }}</p>
-                        <p><strong>National ID:</strong> {{ user.applicant_profile.national_id }}</p>
-                    </div>
-                </div>
-                
-                <hr>
-                
-                <div class="row mb-4">
-                    <div class="col-md-12">
-                        <h4>Education Information</h4>
-                        <p><strong>University:</strong> {{ application.university_name }}</p>
-                        <p><strong>GPA:</strong> {{ application.gpa }}</p>
-                        {% if application.interviews.all %}
-                        <p><strong>Test Score:</strong> {{ application.interviews.first.test_score }}</p>
-                        {% else %}
-                        <p><strong>Test Score:</strong> Not available</p>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <hr>
-                
-                <div class="row">
-                    <div class="col-md-12">
-                        <h4>Submitted Documents</h4>
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Document Type</th>
-                                        <th>File</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>National ID</td>
-                                        <td>
-                                            <a href="{{ application.national_id_document.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-file-alt me-1"></i>View Document
-                                                {% if file_names.national_id_document %}
-                                                <span class="ms-1">({{ file_names.national_id_document }})</span>
-                                                {% endif %}
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Curriculum Vitae (CV)</td>
-                                        <td>
-                                            <a href="{{ application.cv.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-file-alt me-1"></i>View Document
-                                                {% if file_names.cv %}
-                                                <span class="ms-1">({{ file_names.cv }})</span>
-                                                {% endif %}
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Payment Receipt</td>
-                                        <td>
-                                            {% if application.payment_receipt %}
-                                            <a href="{{ application.payment_receipt.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-file-alt me-1"></i>View Document
-                                                {% if file_names.payment_receipt %}
-                                                <span class="ms-1">({{ file_names.payment_receipt }})</span>
-                                                {% endif %}
-                                            </a>
-                                            {% else %}
-                                            <span class="text-muted">Not required for Fellowship programs</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>University Certificate</td>
-                                        <td>
-                                            {% if application.university_certificate %}
-                                            <a href="{{ application.university_certificate.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-file-alt me-1"></i>View Document
-                                                {% if file_names.university_certificate %}
-                                                <span class="ms-1">({{ file_names.university_certificate }})</span>
-                                                {% endif %}
-                                            </a>
-                                            {% else %}
-                                            <span class="text-muted">Not required for Fellowship programs</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% if application.program.program_type == 'FELLOWSHIP' %}
-                                    <tr>
-                                        <td>Board Certification (Optional)</td>
-                                        <td>
-                                            {% if application.board_certification %}
-                                            <a href="{{ application.board_certification.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-file-alt me-1"></i>View Document
-                                                {% if file_names.board_certification %}
-                                                <span class="ms-1">({{ file_names.board_certification }})</span>
-                                                {% endif %}
-                                            </a>
-                                            {% else %}
-                                            <span class="text-muted">Not provided</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5>Program Information</h5>
+                                <p><strong>Program Type:</strong> {{ application.program.get_program_type_display }}</p>
+                                <p><strong>Program:</strong> {{ application.program.name }}</p>
+                                <p><strong>Status:</strong> 
+                                    <span class="badge {% if application.status == 'DRAFT' %}bg-warning{% elif application.status == 'SUBMITTED' %}bg-info{% elif application.status == 'ELIGIBLE' %}bg-success{% elif application.status == 'NOT_ELIGIBLE' %}bg-danger{% elif application.status == 'APPROVED' %}bg-success{% elif application.status == 'REJECTED' %}bg-danger{% elif application.status == 'INVITED_FOR_INTERVIEW' %}bg-primary{% endif %}">
+                                        {{ application.get_status_display }}
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Education Information</h5>
+                                <p><strong>University:</strong> {{ application.university_name }}</p>
+                                <p><strong>GPA:</strong> {{ application.get_gpa_display }}</p>
+                            </div>
                         </div>
-                    </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h5>Uploaded Documents</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Document Type</th>
+                                                <th>Status</th>
+                                                <th>File Name</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>National ID</td>
+                                                <td>
+                                                    {% if file_names.national_id_document %}
+                                                        <span class="badge bg-success">Uploaded</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">Missing</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ file_names.national_id_document|default:"Not uploaded" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>CV</td>
+                                                <td>
+                                                    {% if file_names.cv %}
+                                                        <span class="badge bg-success">Uploaded</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">Missing</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ file_names.cv|default:"Not uploaded" }}</td>
+                                            </tr>
+                                            {% if application.program.program_type == 'RESIDENCY' %}
+                                                <tr>
+                                                    <td>Payment Receipt</td>
+                                                    <td>
+                                                        {% if file_names.payment_receipt %}
+                                                            <span class="badge bg-success">Uploaded</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">Missing</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ file_names.payment_receipt|default:"Not uploaded" }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>University Certificate</td>
+                                                    <td>
+                                                        {% if file_names.university_certificate %}
+                                                            <span class="badge bg-success">Uploaded</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">Missing</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ file_names.university_certificate|default:"Not uploaded" }}</td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td>Board Certification</td>
+                                                    <td>
+                                                        {% if file_names.board_certification %}
+                                                            <span class="badge bg-success">Uploaded</span>
+                                                        {% else %}
+                                                            <span class="badge bg-warning">Optional</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ file_names.board_certification|default:"Not uploaded" }}</td>
+                                                </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                {% if application.status == 'DRAFT' %}
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{% url 'edit_application' application.id %}" class="btn btn-primary">
+                                            <i class="fas fa-edit me-2"></i>Edit Application
+                                        </a>
+                                        <form method="post" action="{% url 'submit_draft' application.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fas fa-paper-plane me-2"></i>Submit Application
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center">
+                            <p class="mb-4">You haven't submitted an application yet.</p>
+                            <a href="{% url 'applicant_dashboard' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Start New Application
+                            </a>
+                        </div>
+                    {% endif %}
                 </div>
-                
-                {% if application.status == 'DRAFT' %}
-                <div class="alert alert-warning mt-4">
-                    <i class="fas fa-exclamation-circle me-2"></i>Your application is saved as a draft. Please submit it when you're ready.
-                </div>
-                {% elif application.status == 'SUBMITTED' %}
-                <div class="alert alert-info mt-4">
-                    <i class="fas fa-info-circle me-2"></i>Your application has been submitted and is currently under review. You will be notified once the status changes.
-                </div>
-                {% elif application.status == 'ELIGIBLE' %}
-                <div class="alert alert-success mt-4">
-                    <i class="fas fa-check-circle me-2"></i>Your application has been marked as eligible. The final decision is pending.
-                </div>
-                {% elif application.status == 'NOT_ELIGIBLE' %}
-                <div class="alert alert-danger mt-4">
-                    <i class="fas fa-times-circle me-2"></i>Your application has been marked as not eligible. Please contact the GME office for more information.
-                </div>
-                {% elif application.status == 'APPROVED' %}
-                <div class="alert alert-success mt-4">
-                    <i class="fas fa-check-circle me-2"></i>Congratulations! Your application has been approved. The GME office will contact you with further instructions.
-                </div>
-                {% elif application.status == 'REJECTED' %}
-                <div class="alert alert-danger mt-4">
-                    <i class="fas fa-times-circle me-2"></i>We regret to inform you that your application has been rejected. Please contact the GME office for more information.
-                </div>
-                {% elif application.status == 'INVITED_FOR_INTERVIEW' %}
-                <div class="alert alert-info mt-4">
-                    <i class="fas fa-calendar-check me-2"></i>Congratulations! You have been invited for an interview. The GME office will contact you with the interview details.
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>

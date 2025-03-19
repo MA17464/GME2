@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -28,6 +29,14 @@
         .navbar-brand {
             font-weight: bold;
             color: var(--khcc-color) !important;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navbar-brand img {
+            height: 40px;
+            width: auto;
         }
         
         .navbar {
@@ -142,6 +151,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
+                <img src="{% static 'images/khcc-logo.png' %}" alt="KHCC Logo">
                 KHCC Graduate Medical Education
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">

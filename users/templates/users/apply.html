@@ -138,6 +138,21 @@
                         </div>
                     </div>
                     
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_board_certification" class="form-label">Board Certification (Optional)</label>
+                            <input type="file" name="board_certification" id="id_board_certification" class="form-control {% if form.board_certification.errors %}is-invalid{% endif %}">
+                            {% if form.board_certification.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.board_certification.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Upload a scanned copy of your board certification if available (PDF or image format)</div>
+                        </div>
+                    </div>
+                    
                     {% if form.non_field_errors %}
                         <div class="alert alert-danger">
                             {% for error in form.non_field_errors %}
@@ -203,6 +218,36 @@
             programSelect.empty();
             programSelect.append('<option value="">Select Program Type First</option>');
         }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const programTypeSelect = document.getElementById('id_program_type');
+        const programSelect = document.getElementById('id_program');
+        const paymentReceiptField = document.getElementById('id_payment_receipt').closest('.col-md-6');
+        const universityCertificateField = document.getElementById('id_university_certificate').closest('.col-md-6');
+        const boardCertificationField = document.getElementById('id_board_certification').closest('.col-md-6');
+        
+        function updateDocumentFields() {
+            const programType = programTypeSelect.value;
+            if (programType === 'RESIDENCY') {
+                paymentReceiptField.style.display = 'block';
+                universityCertificateField.style.display = 'block';
+                boardCertificationField.style.display = 'none';
+                document.getElementById('id_payment_receipt').required = true;
+                document.getElementById('id_university_certificate').required = true;
+                document.getElementById('id_board_certification').required = false;
+            } else if (programType === 'FELLOWSHIP') {
+                paymentReceiptField.style.display = 'none';
+                universityCertificateField.style.display = 'none';
+                boardCertificationField.style.display = 'block';
+                document.getElementById('id_payment_receipt').required = false;
+                document.getElementById('id_university_certificate').required = false;
+                document.getElementById('id_board_certification').required = false;
+            }
+        }
+        
+        programTypeSelect.addEventListener('change', updateDocumentFields);
+        updateDocumentFields(); // Initial state
     });
 </script>
 {% endblock %}

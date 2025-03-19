@@ -140,25 +140,50 @@
                                         <tr>
                                             <td>Payment Receipt</td>
                                             <td>
+                                                {% if application.payment_receipt %}
                                                 <a href="{{ application.payment_receipt.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
                                                     <i class="fas fa-file-alt me-1"></i>View Document
                                                     {% if file_names.payment_receipt %}
                                                     <span class="ms-1">({{ file_names.payment_receipt }})</span>
                                                     {% endif %}
                                                 </a>
+                                                {% else %}
+                                                <span class="text-muted">Not required for Fellowship programs</span>
+                                                {% endif %}
                                             </td>
                                         </tr>
                                         <tr>
                                             <td>University Certificate</td>
                                             <td>
+                                                {% if application.university_certificate %}
                                                 <a href="{{ application.university_certificate.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
                                                     <i class="fas fa-file-alt me-1"></i>View Document
                                                     {% if file_names.university_certificate %}
                                                     <span class="ms-1">({{ file_names.university_certificate }})</span>
                                                     {% endif %}
                                                 </a>
+                                                {% else %}
+                                                <span class="text-muted">Not required for Fellowship programs</span>
+                                                {% endif %}
                                             </td>
                                         </tr>
+                                        {% if application.program.program_type == 'FELLOWSHIP' %}
+                                        <tr>
+                                            <td>Board Certification (Optional)</td>
+                                            <td>
+                                                {% if application.board_certification %}
+                                                <a href="{{ application.board_certification.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-file-alt me-1"></i>View Document
+                                                    {% if file_names.board_certification %}
+                                                    <span class="ms-1">({{ file_names.board_certification }})</span>
+                                                    {% endif %}
+                                                </a>
+                                                {% else %}
+                                                <span class="text-muted">Not provided</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endif %}
                                     </tbody>
                                 </table>
                             </div>

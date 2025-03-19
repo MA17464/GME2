@@ -228,13 +228,13 @@ def delete_program(request, program_id):
 def update_application_status(request, application_id):
     application = get_object_or_404(Application, id=application_id)
     
-    # Get file names for display
-    file_names = {
-        'national_id_document': application.get_file_name('national_id_document'),
-        'cv': application.get_file_name('cv'),
-        'payment_receipt': application.get_file_name('payment_receipt'),
-        'university_certificate': application.get_file_name('university_certificate'),
-    }
+    # Get file names for display, safely handling empty files
+    file_names = {}
+    for field_name in ['national_id_document', 'cv', 'payment_receipt', 'university_certificate', 'board_certification']:
+        if hasattr(application, field_name) and getattr(application, field_name):
+            file_names[field_name] = application.get_file_name(field_name)
+        else:
+            file_names[field_name] = None
     
     if request.method == 'POST':
         form = ApplicationStatusForm(request.POST, instance=application)
@@ -574,8 +574,8 @@ def conduct_interview(request, application_id):
             interview.interviewer = request.user
             interview.form_type = application.program.program_type
             
-            # Set medical school score if not already set
-            if not interview.medical_school_score:
+            # Set medical school score only for Residency programs
+            if application.program.program_type == 'RESIDENCY' and not interview.medical_school_score:
                 interview.medical_school_score = medical_school_score
             
             # Always update test score with the latest value if available
@@ -628,13 +628,13 @@ def applicant_dashboard(request):
         existing_application = Application.objects.filter(applicant=request.user).first()
         
         if existing_application:
-            # Get file names for display
-            file_names = {
-                'national_id_document': existing_application.get_file_name('national_id_document'),
-                'cv': existing_application.get_file_name('cv'),
-                'payment_receipt': existing_application.get_file_name('payment_receipt'),
-                'university_certificate': existing_application.get_file_name('university_certificate'),
-            }
+            # Get file names for display, safely handling empty files
+            file_names = {}
+            for field_name in ['national_id_document', 'cv', 'payment_receipt', 'university_certificate', 'board_certification']:
+                if hasattr(existing_application, field_name) and getattr(existing_application, field_name):
+                    file_names[field_name] = existing_application.get_file_name(field_name)
+                else:
+                    file_names[field_name] = None
             
             return render(request, 'users/applicant_dashboard.html', {
                 'application': existing_application,
@@ -656,6 +656,15 @@ def applicant_dashboard(request):
                 else:
                     application.status = 'SUBMITTED'
                     messages.success(request, 'Your application has been submitted successfully.')
+                
+                # Handle optional files for fellowship programs
+                program_type = form.cleaned_data.get('program_type')
+                if program_type == 'FELLOWSHIP':
+                    # If these fields are not provided, set them to None to avoid attribute errors
+                    if 'payment_receipt' not in request.FILES:
+                        application.payment_receipt = None
+                    if 'university_certificate' not in request.FILES:
+                        application.university_certificate = None
                 
                 # Now save the application
                 application.save()
@@ -905,13 +914,13 @@ def submit_final_score(request, application_id):
 def view_application(request, application_id):
     application = get_object_or_404(Application, id=application_id)
     
-    # Get file names for display
-    file_names = {
-        'national_id_document': application.get_file_name('national_id_document'),
-        'cv': application.get_file_name('cv'),
-        'payment_receipt': application.get_file_name('payment_receipt'),
-        'university_certificate': application.get_file_name('university_certificate'),
-    }
+    # Get file names for display, safely handling empty files
+    file_names = {}
+    for field_name in ['national_id_document', 'cv', 'payment_receipt', 'university_certificate', 'board_certification']:
+        if hasattr(application, field_name) and getattr(application, field_name):
+            file_names[field_name] = application.get_file_name(field_name)
+        else:
+            file_names[field_name] = None
     
     return render(request, 'users/view_application.html', {
         'application': application,

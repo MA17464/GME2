@@ -100,6 +100,7 @@
                                                                 </div>
                                                             {% endif %}
                                                             <table class="table table-sm">
+                                                                {% if interview.form_type == 'RESIDENCY' %}
                                                                 <tr>
                                                                     <th>Professional Appearance:</th>
                                                                     <td>{{ interview.professional_appearance }}/5</td>
@@ -134,8 +135,43 @@
                                                                 </tr>
                                                                 <tr>
                                                                     <th>Research:</th>
-                                                                    <td>{{ interview.research }}/{% if interview.form_type == 'RESIDENCY' %}5{% else %}10{% endif %}</td>
+                                                                    <td>{{ interview.research }}/5</td>
                                                                 </tr>
+                                                                {% else %}
+                                                                <!-- New Fellowship interview scores -->
+                                                                <tr>
+                                                                    <th>1. Professionalism:</th>
+                                                                    <td>{{ interview.professional_appearance }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>2. Time Management:</th>
+                                                                    <td>{{ interview.time_management }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>3. Flexibility & Team Work:</th>
+                                                                    <td>{{ interview.flexibility_teamwork }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>4. Takes Feedback:</th>
+                                                                    <td>{{ interview.takes_feedback }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>5. Stress Coping:</th>
+                                                                    <td>{{ interview.stress_coping }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>6. Problem Solving:</th>
+                                                                    <td>{{ interview.problem_solving }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>7. Leadership:</th>
+                                                                    <td>{{ interview.leadership }}/5</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>8. Interest & Future Plans:</th>
+                                                                    <td>{{ interview.interest }}/5</td>
+                                                                </tr>
+                                                                {% endif %}
                                                             </table>
                                                         </div>
                                                         <div class="col-md-6">
@@ -143,12 +179,14 @@
                                                             <table class="table table-sm">
                                                                 <tr>
                                                                     <th>Test Score:</th>
-                                                                    <td>{{ interview.test_score }}/{% if interview.form_type == 'RESIDENCY' %}75{% else %}40{% endif %}</td>
+                                                                    <td>{{ interview.test_score }}/{% if interview.form_type == 'RESIDENCY' %}75{% else %}60{% endif %}</td>
                                                                 </tr>
+                                                                {% if interview.form_type == 'RESIDENCY' %}
                                                                 <tr>
                                                                     <th>Medical School Score:</th>
                                                                     <td>{{ interview.medical_school_score }}/10</td>
                                                                 </tr>
+                                                                {% endif %}
                                                                 <tr>
                                                                     <th>Total Score:</th>
                                                                     <td><strong>{{ interview.get_total_score }}/100</strong></td>

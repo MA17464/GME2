@@ -172,28 +172,27 @@
 
 | Interview Area | Score |
 |----------------|-------|
-| **Professional Appearance**: <br>Dress, attitude, avoid cross-legging, less stress, no stuttering, etc. | / 5 |
-| **Interest**: <br>Why you choose this specialty? (should give details)<br>Why our institution? (should be aware of the surgical and medical practices of the center) | / 5 |
-| **Behavior**: <br>"Tell me about one experience with patient you had trouble with"<br>"Tell me about one experience you made a mistake and had to tell a colleague about it"<br>"How would you deal with a resident who did not do his share of work" | / 5 |
-| **Future Plans**: <br>"Where do you see yourself in 5 years"<br>"How would this training develop your career" | / 5 |
-| **Personality**: <br>"Tell me about your strengths and weaknesses"<br>"Tell me about one case you learned from"<br>"What do you do in your free time?" | / 5 |
-| **Handling emergencies and work load**: <br>Ask candidate about clinical scenarios (candidate should show his/her fast step in emergency cases to ensure patient safety) | / 5 |
-| **Professional Attitude**: <br>"Tell me about a time your work was criticized/ how did you react?"<br>"Tell me about a stressful situation you have been through and how you solved it" | / 5 |
-| **Knowledge**: <br>"Ask about one clinical scenario related to specialty applied for and ask the applicant for differential diagnosis and next step management" | / 5 |
-| **Research**: <br>One or more published papers = 5 marks<br>Ongoing project (IRB approved) = 2 marks | / 10 |
+| **1. Professionalism**: <br>Appearance and attitude (Dress, avoid cross-legging, less stress, no stuttering, friendly, collegial) | / 5 |
+| **2. Time management and managing work load**: <br>• How do you plan your work when you have multiple conflicting tasks?<br>• Tell me about a project where the deadline was approaching and you still needed more time. How did you approach that with your senior and colleagues? | / 5 |
+| **3. Flexibility and Team Work**: <br>• Give one example of when your priorities changed quickly – how did you deal with it?<br>• Give me an example of a team member that was acting in a way that you perceived as negative to patient care or project outcomes. | / 5 |
+| **4. Takes feedback appropriately**: <br>• Tell me about a time when you disagreed with the evaluation you received from your mentor and how you handled it? | / 5 |
+| **5. Stress Coping**: <br>• Give me an example of situation that upset you and how did you react to the situation.<br>• Tell me about a time when you had to adopt to handle a stressful situation? | / 5 |
+| **6. Problem Solving**: <br>• Give me a specific example of when you solved a tough problem?<br>• Give me an example of when you were able to see and implement a new way of doing things in your position/company/department how you accomplish this and what was the outcome? | / 5 |
+| **7. Leadership**: <br>• Give me an example of strategy you have used to motivate others.<br>• Tell me about a time when your team had to work on a tight deadline. How did you ensure everyone complete their work on time? | / 5 |
+| **8. Interest and Future plans**: <br>• Why you choose this specialty? (should give details)<br>• Why our institution? (should be aware of the practices of KHCC)<br>• What is your 5-year or 10-year plan? How does our program fit into that? | / 5 |
 | **Tentative Available Date**: | |
-| **Final Total** | / 50 |
+
+**Scoring scale for each category:**<br>
+Poor (-1) | Average (1-2) | Good (3-4) | Excellent (5) | Not sure (0)
 
 | Evaluation Area | Score |
 |-----------------|-------|
-| Interview score | / 50 |
-| Test score (written/Oral) | / 40 |
-| **Medical School Score**: <br>Excellent = 10 marks<br>Very Good = 8 marks<br>Good = 6 marks<br>Satisfactory = 4 marks | / 10 |
+| Test score | / 60 |
+| Interview score | / 40 |
 | **Total Score** | / 100 |
 
-
-**- The Interview Score is the sum of all the scores in the interview form (same as Final Total).**
-**- Test Score are automatically taken from the score that was uploaded by the GME Staff in the upload scores page.**
-**- Medical School Score are automatically taken from the GPA of the applicant.**
+**- The Interview Score is the sum of all the scores in the interview form (maximum 40 points).**
+**- Test Score is automatically taken from the score that was uploaded by the GME Staff in the upload scores page.**
+**- The Total Score is calculated as the sum of Interview Score and Test Score (maximum 100 points).**
 
 ---

@@ -131,11 +131,17 @@ class Application(models.Model):
         filename = f"{instance.applicant.username}_{uuid4().hex}.{ext}"
         return os.path.join('documents', 'certificates', filename)
     
+    def board_certification_upload_path(instance, filename):
+        ext = filename.split('.')[-1]
+        filename = f"{instance.applicant.username}_{uuid4().hex}.{ext}"
+        return os.path.join('documents', 'board_certification', filename)
+    
     # Use the specific upload path functions for each field
     national_id_document = models.FileField(upload_to=national_id_upload_path)
     cv = models.FileField(upload_to=cv_upload_path)
-    payment_receipt = models.FileField(upload_to=payment_upload_path)
-    university_certificate = models.FileField(upload_to=certificate_upload_path)
+    payment_receipt = models.FileField(upload_to=payment_upload_path, null=True, blank=True)
+    university_certificate = models.FileField(upload_to=certificate_upload_path, null=True, blank=True)
+    board_certification = models.FileField(upload_to=board_certification_upload_path, null=True, blank=True)
     
     status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='SUBMITTED')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -162,7 +168,8 @@ class Application(models.Model):
                 'national_id_document': 'National ID',
                 'cv': 'CV',
                 'payment_receipt': 'Payment Receipt',
-                'university_certificate': 'University Certificate'
+                'university_certificate': 'University Certificate',
+                'board_certification': 'Board Certification'
             }
             
             # Return a user-friendly document name
@@ -214,6 +221,14 @@ class Interview(models.Model):
     knowledge = models.PositiveSmallIntegerField(default=0)
     research = models.PositiveSmallIntegerField(default=0)
     
+    # Fellowship specific fields
+    time_management = models.SmallIntegerField(default=0)
+    flexibility_teamwork = models.SmallIntegerField(default=0)
+    takes_feedback = models.SmallIntegerField(default=0)
+    stress_coping = models.SmallIntegerField(default=0)
+    problem_solving = models.SmallIntegerField(default=0)
+    leadership = models.SmallIntegerField(default=0)
+    
     # Additional fields for test scores
     test_score = models.PositiveSmallIntegerField(default=0)
     medical_school_score = models.PositiveSmallIntegerField(default=0)
@@ -230,24 +245,33 @@ class Interview(models.Model):
     
     def get_total_interview_score(self):
         """Calculate the total interview score based on form type"""
-        base_score = (
-            self.professional_appearance +
-            self.interest +
-            self.behavior +
-            self.future_plans +
-            self.personality +
-            self.handling_emergencies +
-            self.professional_attitude +
-            self.knowledge +
-            self.research
-        )
-        
         if self.form_type == 'RESIDENCY':
             # For Residency: interview score is out of 45
+            base_score = (
+                self.professional_appearance +
+                self.interest +
+                self.behavior +
+                self.future_plans +
+                self.personality +
+                self.handling_emergencies +
+                self.professional_attitude +
+                self.knowledge +
+                self.research
+            )
             return min(base_score, 45)
         else:
-            # For Fellowship: interview score is out of 50
-            return min(base_score, 50)
+            # For Fellowship: interview score is out of 40 with the new scoring system
+            base_score = (
+                self.professional_appearance +
+                self.time_management +
+                self.flexibility_teamwork +
+                self.takes_feedback +
+                self.stress_coping +
+                self.problem_solving +
+                self.leadership +
+                self.interest  # This now represents "Interest and Future plans" in the new system
+            )
+            return min(base_score, 40)
     
     def get_total_score(self):
         """Calculate the total score including test and medical school scores"""
@@ -258,8 +282,9 @@ class Interview(models.Model):
             final_interview_score = round(interview_score / 3)
             return final_interview_score + self.test_score + self.medical_school_score
         else:
-            # Fellowship: interview (50) + test (40) + medical school (10) = 100
-            return interview_score + self.test_score + self.medical_school_score
+            # Fellowship: interview (40) + test (60) + medical school (0) = 100
+            # New Fellowship scoring system doesn't include medical school score and test is out of 60
+            return interview_score + self.test_score
             
     def save(self, *args, **kwargs):
         # If this is a new interview, set the medical school score based on GPA

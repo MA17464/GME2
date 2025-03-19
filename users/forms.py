@@ -104,7 +104,7 @@ class ApplicationForm(forms.ModelForm):
     
     class Meta:
         model = Application
-        fields = ['program', 'university_name', 'gpa', 'national_id_document', 'cv', 'payment_receipt', 'university_certificate']
+        fields = ['program', 'university_name', 'gpa', 'national_id_document', 'cv', 'payment_receipt', 'university_certificate', 'board_certification']
         widgets = {
             'program': forms.Select(attrs={'class': 'form-select'}),
             'university_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -116,7 +116,7 @@ class ApplicationForm(forms.ModelForm):
         self.fields['program'].queryset = Program.objects.filter(status='ACTIVE')
         
         # Add file validation to all file fields
-        for field in ['national_id_document', 'cv', 'payment_receipt', 'university_certificate']:
+        for field in ['national_id_document', 'cv', 'payment_receipt', 'university_certificate', 'board_certification']:
             self.fields[field].validators = [
                 FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png']),
                 validate_file_size
@@ -125,10 +125,20 @@ class ApplicationForm(forms.ModelForm):
                 'class': 'form-control',
                 'accept': '.pdf,.jpg,.jpeg,.png'
             })
+        
+        # Make certain fields required only for residency programs
+        if self.instance.pk and self.instance.program.program_type == 'RESIDENCY':
+            self.fields['payment_receipt'].required = True
+            self.fields['university_certificate'].required = True
+        else:
+            self.fields['payment_receipt'].required = False
+            self.fields['university_certificate'].required = False
+            self.fields['board_certification'].required = False
     
     def clean(self):
         cleaned_data = super().clean()
         program = cleaned_data.get('program')
+        program_type = cleaned_data.get('program_type')
         
         if program and hasattr(self.instance, 'applicant') and self.instance.applicant:
             # Check if user has already applied to this program
@@ -145,6 +155,17 @@ class ApplicationForm(forms.ModelForm):
             
             if existing:
                 raise ValidationError('You have already applied to this program.')
+        
+        # Validate document requirements based on program type
+        if program_type == 'RESIDENCY':
+            if not cleaned_data.get('payment_receipt'):
+                self.add_error('payment_receipt', 'Payment receipt is required for residency programs.')
+            if not cleaned_data.get('university_certificate'):
+                self.add_error('university_certificate', 'University certificate is required for residency programs.')
+        # Remove the validation that makes board certification required for fellowship programs
+        # elif program_type == 'FELLOWSHIP':
+        #     if not cleaned_data.get('board_certification'):
+        #         self.add_error('board_certification', 'Board certification is required for fellowship programs.')
         
         return cleaned_data
 
@@ -205,21 +226,19 @@ class FellowshipInterviewForm(forms.ModelForm):
     class Meta:
         model = Interview
         fields = [
-            'professional_appearance', 'interest', 'behavior', 'future_plans',
-            'personality', 'handling_emergencies', 'professional_attitude',
-            'knowledge', 'research', 'test_score', 'medical_school_score',
-            'tentative_available_date'
+            'professional_appearance', 'time_management', 'flexibility_teamwork',
+            'takes_feedback', 'stress_coping', 'problem_solving', 'leadership',
+            'interest', 'test_score', 'medical_school_score', 'tentative_available_date'
         ]
         widgets = {
-            'professional_appearance': forms.NumberInput(attrs={'min': 0, 'max': 5}),
-            'interest': forms.NumberInput(attrs={'min': 0, 'max': 5}),
-            'behavior': forms.NumberInput(attrs={'min': 0, 'max': 5}),
-            'future_plans': forms.NumberInput(attrs={'min': 0, 'max': 5}),
-            'personality': forms.NumberInput(attrs={'min': 0, 'max': 5}),
-            'handling_emergencies': forms.NumberInput(attrs={'min': 0, 'max': 5}),
-            'professional_attitude': forms.NumberInput(attrs={'min': 0, 'max': 5}),
-            'knowledge': forms.NumberInput(attrs={'min': 0, 'max': 5}),
-            'research': forms.NumberInput(attrs={'min': 0, 'max': 10}),
+            'professional_appearance': forms.NumberInput(attrs={'min': -1, 'max': 5, 'class': 'form-control'}),
+            'time_management': forms.NumberInput(attrs={'min': -1, 'max': 5, 'class': 'form-control'}),
+            'flexibility_teamwork': forms.NumberInput(attrs={'min': -1, 'max': 5, 'class': 'form-control'}),
+            'takes_feedback': forms.NumberInput(attrs={'min': -1, 'max': 5, 'class': 'form-control'}),
+            'stress_coping': forms.NumberInput(attrs={'min': -1, 'max': 5, 'class': 'form-control'}),
+            'problem_solving': forms.NumberInput(attrs={'min': -1, 'max': 5, 'class': 'form-control'}),
+            'leadership': forms.NumberInput(attrs={'min': -1, 'max': 5, 'class': 'form-control'}),
+            'interest': forms.NumberInput(attrs={'min': -1, 'max': 5, 'class': 'form-control'}),
             'test_score': forms.HiddenInput(),
             'medical_school_score': forms.HiddenInput(),
             'tentative_available_date': forms.DateInput(attrs={'type': 'date'}),

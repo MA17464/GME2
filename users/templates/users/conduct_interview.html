@@ -75,11 +75,11 @@
                                 {% if program_type == 'RESIDENCY' %}
                                     <li>Interview score: 45 points (15 in final total)</li>
                                     <li>Test score: 75 points</li>
+                                    <li>Medical School Score: 10 points</li>
                                 {% else %}
-                                    <li>Interview score: 50 points</li>
-                                    <li>Test score: 40 points</li>
+                                    <li>Interview score: 40 points</li>
+                                    <li>Test score: 60 points</li>
                                 {% endif %}
-                                <li>Medical School Score: 10 points</li>
                                 <li>Total: 100 points</li>
                             </ul>
                         </div>
@@ -91,7 +91,9 @@
                                 <li>For Residency: The final interview score is divided by 3 for the total calculation.</li>
                                 {% endif %}
                                 <li>Test Score is automatically taken from the score uploaded by the GME Staff and cannot be modified.</li>
+                                {% if program_type == 'RESIDENCY' %}
                                 <li>Medical School Score is automatically calculated based on the applicant's GPA and cannot be modified.</li>
+                                {% endif %}
                             </ul>
                         </div>
                     </div>
@@ -113,6 +115,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                    {% if program_type == 'RESIDENCY' %}
                                         <tr>
                                             <td>
                                                 <strong>Professional Appearance</strong>
@@ -221,22 +224,152 @@
                                             <td>
                                                 <strong>Research</strong>
                                                 <p class="text-muted small mb-0">
-                                                    {% if program_type == 'RESIDENCY' %}
-                                                        One or more published papers = 5 marks, Ongoing project (IRB approved) = 2 marks
-                                                    {% else %}
-                                                        One or more published papers = 10 marks, Ongoing project (IRB approved) = 5 marks
-                                                    {% endif %}
+                                                    One or more published papers = 5 marks, Ongoing project (IRB approved) = 2 marks
                                                 </p>
                                             </td>
                                             <td>
                                                 <div class="input-group">
                                                     {{ form.research|add_class:"form-control score-input" }}
-                                                    <span class="input-group-text">/{% if program_type == 'RESIDENCY' %}5{% else %}10{% endif %}</span>
+                                                    <span class="input-group-text">/5</span>
                                                 </div>
                                                 {{ form.research.errors }}
                                             </td>
                                         </tr>
-                                        {% if program_type == 'FELLOWSHIP' %}
+                                    {% else %}
+                                        <!-- New Fellowship scoring system -->
+                                        <tr>
+                                            <td>
+                                                <strong>1. Professionalism: Appearance and attitude</strong>
+                                                <p class="text-muted small mb-0">Dress, avoid cross-legging, less stress, no stuttering, friendly, collegial</p>
+                                            </td>
+                                            <td>
+                                                <div class="input-group">
+                                                    {{ form.professional_appearance|add_class:"form-control score-input" }}
+                                                    <span class="input-group-text">/5</span>
+                                                </div>
+                                                <small class="form-text text-muted">Poor (-1) | Average (1-2) | Good (3-4) | Excellent (5) | Not sure (0)</small>
+                                                {{ form.professional_appearance.errors }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>2. Time management and managing work load</strong>
+                                                <p class="text-muted small mb-0">
+                                                    • How do you plan your work when you have multiple conflicting tasks?<br>
+                                                    • Tell me about a project where the deadline was approaching and you still needed more time. How did you approach that with your senior and colleagues?
+                                                </p>
+                                            </td>
+                                            <td>
+                                                <div class="input-group">
+                                                    {{ form.time_management|add_class:"form-control score-input" }}
+                                                    <span class="input-group-text">/5</span>
+                                                </div>
+                                                <small class="form-text text-muted">Poor (-1) | Average (1-2) | Good (3-4) | Excellent (5) | Not sure (0)</small>
+                                                {{ form.time_management.errors }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>3. Flexibility and Team Work</strong>
+                                                <p class="text-muted small mb-0">
+                                                    • Give one example of when your priorities changed quickly – how did you deal with it?<br>
+                                                    • Give me an example of a team member that was acting in a way that you perceived as negative to patient care or project outcomes.
+                                                </p>
+                                            </td>
+                                            <td>
+                                                <div class="input-group">
+                                                    {{ form.flexibility_teamwork|add_class:"form-control score-input" }}
+                                                    <span class="input-group-text">/5</span>
+                                                </div>
+                                                <small class="form-text text-muted">Poor (-1) | Average (1-2) | Good (3-4) | Excellent (5) | Not sure (0)</small>
+                                                {{ form.flexibility_teamwork.errors }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>4. Takes feedback appropriately</strong>
+                                                <p class="text-muted small mb-0">
+                                                    • Tell me about a time when you disagreed with the evaluation you received from your mentor and how you handled it?
+                                                </p>
+                                            </td>
+                                            <td>
+                                                <div class="input-group">
+                                                    {{ form.takes_feedback|add_class:"form-control score-input" }}
+                                                    <span class="input-group-text">/5</span>
+                                                </div>
+                                                <small class="form-text text-muted">Poor (-1) | Average (1-2) | Good (3-4) | Excellent (5) | Not sure (0)</small>
+                                                {{ form.takes_feedback.errors }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>5. Stress Coping</strong>
+                                                <p class="text-muted small mb-0">
+                                                    • Give me an example of situation that upset you and how did you react to the situation.<br>
+                                                    • Tell me about a time when you had to adopt to handle a stressful situation?
+                                                </p>
+                                            </td>
+                                            <td>
+                                                <div class="input-group">
+                                                    {{ form.stress_coping|add_class:"form-control score-input" }}
+                                                    <span class="input-group-text">/5</span>
+                                                </div>
+                                                <small class="form-text text-muted">Poor (-1) | Average (1-2) | Good (3-4) | Excellent (5) | Not sure (0)</small>
+                                                {{ form.stress_coping.errors }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>6. Problem Solving</strong>
+                                                <p class="text-muted small mb-0">
+                                                    • Give me a specific example of when you solved a tough problem?<br>
+                                                    • Give me an example of when you were able to see and implement a new way of doing things in your position/company/department how you accomplish this and what was the outcome?
+                                                </p>
+                                            </td>
+                                            <td>
+                                                <div class="input-group">
+                                                    {{ form.problem_solving|add_class:"form-control score-input" }}
+                                                    <span class="input-group-text">/5</span>
+                                                </div>
+                                                <small class="form-text text-muted">Poor (-1) | Average (1-2) | Good (3-4) | Excellent (5) | Not sure (0)</small>
+                                                {{ form.problem_solving.errors }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>7. Leadership</strong>
+                                                <p class="text-muted small mb-0">
+                                                    • Give me an example of strategy you have used to motivate others.<br>
+                                                    • Tell me about a time when your team had to work on a tight deadline. How did you ensure everyone complete their work on time?
+                                                </p>
+                                            </td>
+                                            <td>
+                                                <div class="input-group">
+                                                    {{ form.leadership|add_class:"form-control score-input" }}
+                                                    <span class="input-group-text">/5</span>
+                                                </div>
+                                                <small class="form-text text-muted">Poor (-1) | Average (1-2) | Good (3-4) | Excellent (5) | Not sure (0)</small>
+                                                {{ form.leadership.errors }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>8. Interest and Future plans</strong>
+                                                <p class="text-muted small mb-0">
+                                                    • Why you choose this specialty? (should give details)<br>
+                                                    • Why our institution? (should be aware of the practices of KHCC)<br>
+                                                    • What is your 5-year or 10-year plan? How does our program fit into that?
+                                                </p>
+                                            </td>
+                                            <td>
+                                                <div class="input-group">
+                                                    {{ form.interest|add_class:"form-control score-input" }}
+                                                    <span class="input-group-text">/5</span>
+                                                </div>
+                                                <small class="form-text text-muted">Poor (-1) | Average (1-2) | Good (3-4) | Excellent (5) | Not sure (0)</small>
+                                                {{ form.interest.errors }}
+                                            </td>
+                                        </tr>
                                         <tr>
                                             <td>
                                                 <strong>Tentative Available Date</strong>
@@ -246,7 +379,7 @@
                                                 {{ form.tentative_available_date.errors }}
                                             </td>
                                         </tr>
-                                        {% endif %}
+                                    {% endif %}
                                     </tbody>
                                 </table>
                             </div>
@@ -265,7 +398,7 @@
                                         <th>Interview Score:</th>
                                         <td>
                                             <span id="interview-score">0</span>
-                                            /{% if program_type == 'RESIDENCY' %}45{% else %}50{% endif %}
+                                            /{% if program_type == 'RESIDENCY' %}45{% else %}40{% endif %}
                                         </td>
                                     </tr>
                                     <tr>
@@ -273,12 +406,13 @@
                                         <td>
                                             <div class="input-group">
                                                 <input type="text" class="form-control" value="{{ form.test_score.value }}" readonly>
-                                                <span class="input-group-text">/{% if program_type == 'RESIDENCY' %}75{% else %}40{% endif %}</span>
+                                                <span class="input-group-text">/{% if program_type == 'RESIDENCY' %}75{% else %}60{% endif %}</span>
                                             </div>
                                             {{ form.test_score.errors }}
                                             {{ form.test_score|add_class:"d-none" }}
                                         </td>
                                     </tr>
+                                    {% if program_type == 'RESIDENCY' %}
                                     <tr>
                                         <th>Medical School Score:</th>
                                         <td>
@@ -290,6 +424,10 @@
                                             {{ form.medical_school_score|add_class:"d-none" }}
                                         </td>
                                     </tr>
+                                    {% else %}
+                                    <!-- Hidden medical school score field for fellowship -->
+                                    {{ form.medical_school_score|add_class:"d-none" }}
+                                    {% endif %}
                                     <tr class="table-success">
                                         <th>Total Score:</th>
                                         <td><span id="total-score">0</span>/100</td>
@@ -301,12 +439,14 @@
                                     <small>
                                         {% if program_type == 'RESIDENCY' %}
                                         For Residency: The interview score (45) is divided by 3 for the final calculation.<br>
-                                        {% endif %}
                                         Medical School Score is calculated based on GPA:<br>
                                         Excellent = 10 marks<br>
                                         Very Good = 8 marks<br>
                                         Good = 6 marks<br>
                                         Satisfactory = 4 marks
+                                        {% else %}
+                                        For Fellowship: The interview score (40) is added directly to the test score (60).
+                                        {% endif %}
                                     </small>
                                 </div>
                             </div>
@@ -353,6 +493,9 @@
             medicalSchoolScoreField.value = medicalSchoolScore;
         }
         
+        // Get program type
+        const programType = "{{ program_type }}";
+        
         // Calculate scores when any input changes
         const scoreInputs = document.querySelectorAll('.score-input');
         const testScoreInput = document.getElementById('{{ form.test_score.id_for_label }}');
@@ -361,29 +504,52 @@
         function calculateScores() {
             // Calculate interview score
             let interviewScore = 0;
-            scoreInputs.forEach(input => {
-                interviewScore += parseInt(input.value) || 0;
-            });
+            
+            // For Fellowship, we use the new criteria fields
+            if (programType === "FELLOWSHIP") {
+                const professionalAppearance = document.getElementById('{{ form.professional_appearance.id_for_label }}').value || 0;
+                const timeManagement = document.getElementById('{{ form.time_management.id_for_label }}').value || 0;
+                const flexibilityTeamwork = document.getElementById('{{ form.flexibility_teamwork.id_for_label }}').value || 0;
+                const takesFeedback = document.getElementById('{{ form.takes_feedback.id_for_label }}').value || 0;
+                const stressCoping = document.getElementById('{{ form.stress_coping.id_for_label }}').value || 0;
+                const problemSolving = document.getElementById('{{ form.problem_solving.id_for_label }}').value || 0;
+                const leadership = document.getElementById('{{ form.leadership.id_for_label }}').value || 0;
+                const interest = document.getElementById('{{ form.interest.id_for_label }}').value || 0;
+                
+                interviewScore = parseInt(professionalAppearance) + 
+                                parseInt(timeManagement) + 
+                                parseInt(flexibilityTeamwork) + 
+                                parseInt(takesFeedback) + 
+                                parseInt(stressCoping) + 
+                                parseInt(problemSolving) + 
+                                parseInt(leadership) + 
+                                parseInt(interest);
+            } else {
+                // For Residency, use all score inputs
+                scoreInputs.forEach(input => {
+                    interviewScore += parseInt(input.value) || 0;
+                });
+            }
             
             // Get program type and max interview score
-            const programType = "{{ program_type }}";
-            const maxInterviewScore = programType === "RESIDENCY" ? 45 : 50;
+            const maxInterviewScore = programType === "RESIDENCY" ? 45 : 40;
             
             // Cap the interview score at the maximum
             interviewScore = Math.min(interviewScore, maxInterviewScore);
             
             // Get test score and medical school score
             const testScore = parseInt(testScoreInput.value) || 0;
-            const medicalSchoolScore = parseInt(medicalSchoolScoreInput.value) || 0;
             
             // Calculate total score
             let totalScore = 0;
             if (programType === "RESIDENCY") {
                 // For Residency, interview score is divided by 3
+                const medicalSchoolScore = parseInt(medicalSchoolScoreInput.value) || 0;
                 const finalInterviewScore = Math.round(interviewScore / 3);
                 totalScore = finalInterviewScore + testScore + medicalSchoolScore;
             } else {
-                totalScore = interviewScore + testScore + medicalSchoolScore;
+                // For Fellowship, just add interview score and test score
+                totalScore = interviewScore + testScore;
             }
             
             // Update the display
@@ -397,7 +563,9 @@
         });
         
         testScoreInput.addEventListener('input', calculateScores);
-        medicalSchoolScoreInput.addEventListener('input', calculateScores);
+        if (medicalSchoolScoreInput) {
+            medicalSchoolScoreInput.addEventListener('input', calculateScores);
+        }
         
         // Calculate initial scores
         calculateScores();

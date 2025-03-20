@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden, FileResponse, Http404
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Q, F, Sum
@@ -18,9 +18,54 @@ import csv
 import pandas as pd
 import io
 import logging
+import os
+from functools import wraps
 
 # Set up logger
 logger = logging.getLogger(__name__)
+
+def can_access_file(user, application):
+    """
+    Check if user has permission to access application files
+    """
+    if user.user_type == 'GME_STAFF':
+        return True
+    elif user.user_type in ['PROGRAM_DIRECTOR', 'INTERVIEWER']:
+        return application.program == user.program
+    elif user.user_type == 'APPLICANT':
+        return application.applicant == user
+    return False
+
+def verify_program_access(user, program):
+    """
+    Verify if user has access to the specified program
+    """
+    if user.user_type == 'GME_STAFF':
+        return True
+    return user.program == program
+
+def check_interview_modification(interview):
+    """
+    Check if an interview can be modified
+    """
+    application = interview.application
+    if application.final_score_submitted:
+        return False
+    return True
+
+def require_program_access(view_func):
+    """
+    Decorator to verify program access
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        program_id = kwargs.get('program_id')
+        if program_id:
+            program = get_object_or_404(Program, id=program_id)
+            if not verify_program_access(request.user, program):
+                raise PermissionDenied("You don't have access to this program")
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 
 def home(request):
     residency_programs = Program.objects.filter(program_type='RESIDENCY', status='ACTIVE')
@@ -589,7 +634,7 @@ def conduct_interview(request, application_id):
     application = get_object_or_404(Application, id=application_id)
     
     # Verify the application is for the interviewer's program
-    if application.program != request.user.program:
+    if not verify_program_access(request.user, application.program):
         messages.error(request, 'You are not authorized to interview this applicant.')
         return redirect('interviewer_dashboard')
     
@@ -598,6 +643,11 @@ def conduct_interview(request, application_id):
         application=application,
         interviewer=request.user
     ).first()
+    
+    # Check if interview can be modified
+    if existing_interview and not check_interview_modification(existing_interview):
+        messages.error(request, 'Interview cannot be modified after final score submission.')
+        return redirect('interviewer_dashboard')
     
     # Only check application status if this is a new interview
     if not existing_interview and application.status != 'INVITED_FOR_INTERVIEW':
@@ -931,7 +981,7 @@ def director_dashboard(request):
     
     # Get applications for the director's program that are invited for interview
     applications = Application.objects.filter(
-        program=program,
+        program=program,  # This ensures director only sees their program's applications
         status='INVITED_FOR_INTERVIEW'
     ).prefetch_related(
         'interviews',
@@ -979,7 +1029,7 @@ def view_interview_results(request, application_id):
     application = get_object_or_404(Application, id=application_id)
     
     # Verify the application is for the director's program
-    if application.program != request.user.program:
+    if not verify_program_access(request.user, application.program):
         messages.error(request, 'You are not authorized to view this application.')
         return redirect('director_dashboard')
     
@@ -1001,7 +1051,7 @@ def submit_final_score(request, application_id):
     application = get_object_or_404(Application, id=application_id)
     
     # Verify the application is for the director's program
-    if application.program != request.user.program:
+    if not verify_program_access(request.user, application.program):
         messages.error(request, 'You are not authorized to submit scores for this application.')
         return redirect('director_dashboard')
     
@@ -1019,15 +1069,11 @@ def submit_final_score(request, application_id):
             if 0 <= final_score <= 100:
                 if status in ['APPROVED', 'REJECTED']:
                     # Submit final score and update status in one step
-                    # If already submitted, this will update the existing score
                     application.submit_final_score(final_score, notes)
                     application.status = status
                     application.save()
                     
-                    if application.final_score_submitted:
-                        messages.success(request, f'Final score and status updated successfully.')
-                    else:
-                        messages.success(request, f'Final score submitted and application {status.lower()}.')
+                    messages.success(request, f'Final score submitted and application {status.lower()}.')
                     return redirect('view_interview_results', application_id=application_id)
                 else:
                     messages.error(request, 'Please select a valid status (Approved or Rejected).')
@@ -1055,3 +1101,38 @@ def view_application(request, application_id):
         'application': application,
         'file_names': file_names
     })
+
+@login_required
+def download_application_file(request, application_id, file_type):
+    """
+    View to handle secure file downloads
+    """
+    application = get_object_or_404(Application, id=application_id)
+    
+    # Check if user has permission to access the file
+    if not can_access_file(request.user, application):
+        raise PermissionDenied("You don't have permission to access this file")
+    
+    # Map of valid file types to their model fields
+    file_map = {
+        'cv': 'cv',
+        'national_id': 'national_id_document',
+        'payment': 'payment_receipt',
+        'university': 'university_certificate',
+        'board': 'board_certification'
+    }
+    
+    if file_type not in file_map:
+        raise Http404("Invalid file type")
+    
+    file_field = getattr(application, file_map[file_type])
+    if not file_field:
+        raise Http404("File not found")
+    
+    try:
+        response = FileResponse(file_field)
+        response['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_field.name)}"'
+        return response
+    except Exception as e:
+        logger.error(f"Error downloading file: {str(e)}")
+        raise Http404("Error accessing file")

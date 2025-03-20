@@ -39,4 +39,7 @@ urlpatterns = [
     path('director/interview-results/<int:application_id>/', views.view_interview_results, name='view_interview_results'),
     path('director/submit-final-score/<int:application_id>/', views.submit_final_score, name='submit_final_score'),
     path('update-application-status/<int:application_id>/', views.update_application_status, name='update_application_status'),
+
+    # File Download
+    path('application/<int:application_id>/file/<str:file_type>/', views.download_application_file, name='download_application_file'),
 ] 

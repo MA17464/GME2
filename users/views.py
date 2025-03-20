@@ -141,6 +141,7 @@ def check_role_access(view_func):
             'approve_staff': ['GME_STAFF'],
             'conduct_interview': ['INTERVIEWER', 'PROGRAM_DIRECTOR'],
             'view_interview_results': ['PROGRAM_DIRECTOR'],
+            'submit_final_score': ['PROGRAM_DIRECTOR'],
             'view_application': ['GME_STAFF'],
             'edit_program': ['GME_STAFF'],
             'delete_program': ['GME_STAFF'],
@@ -151,7 +152,9 @@ def check_role_access(view_func):
             'process_scores': ['GME_STAFF'],
             'export_applications': ['GME_STAFF'],
             'bulk_send_email': ['GME_STAFF'],
-            'bulk_actions': ['GME_STAFF']
+            'bulk_actions': ['GME_STAFF'],
+            'edit_application': ['APPLICANT'],
+            'submit_draft': ['APPLICANT']
         }
 
         if view_name in role_access_map:

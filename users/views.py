@@ -2,10 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Q, F, Sum
+from django.core.exceptions import PermissionDenied
 from .models import User, Applicant, Program, Application, Interview, ApplicantScore
 from .forms import (
     StaffRegistrationForm, ApplicantRegistrationForm, ProgramForm, 
@@ -95,8 +96,64 @@ def is_interviewer(user):
 def is_program_director(user):
     return user.is_authenticated and user.user_type == 'PROGRAM_DIRECTOR'
 
+def error_403(request, exception):
+    return render(request, 'users/error.html', {
+        'error_code': '403',
+        'error_title': 'Access Denied',
+        'error_message': 'You do not have permission to access this page.',
+    }, status=403)
+
+def error_404(request, exception):
+    return render(request, 'users/error.html', {
+        'error_code': '404',
+        'error_title': 'Page Not Found',
+        'error_message': 'The page you are looking for does not exist.',
+    }, status=404)
+
+def error_500(request):
+    return render(request, 'users/error.html', {
+        'error_code': '500',
+        'error_title': 'Server Error',
+        'error_message': 'An internal server error occurred. Please try again later.',
+    }, status=500)
+
+class RoleRequiredMixin:
+    @classmethod
+    def as_view(cls, **initkwargs):
+        view = super().as_view(**initkwargs)
+        return login_required(user_passes_test(cls.role_test)(view))
+
+def check_role_access(view_func):
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
+            
+        allowed = False
+        view_name = request.resolver_match.url_name
+        user_type = request.user.user_type
+
+        role_access_map = {
+            'dashboard': ['GME_STAFF'],
+            'applicant_dashboard': ['APPLICANT'],
+            'interviewer_dashboard': ['INTERVIEWER', 'PROGRAM_DIRECTOR'],
+            'director_dashboard': ['PROGRAM_DIRECTOR'],
+            'manage_programs': ['GME_STAFF'],
+            'approve_staff': ['GME_STAFF'],
+            'conduct_interview': ['INTERVIEWER', 'PROGRAM_DIRECTOR'],
+            'view_interview_results': ['PROGRAM_DIRECTOR'],
+        }
+
+        if view_name in role_access_map:
+            allowed = user_type in role_access_map[view_name]
+
+        if not allowed:
+            raise PermissionDenied("You don't have permission to access this page.")
+
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
 @login_required
-@user_passes_test(is_gme_staff)
+@check_role_access
 def dashboard(request):
     pending_staff = User.objects.filter(is_approved=False).exclude(user_type='APPLICANT')
     # Exclude draft applications from being shown to GME staff
@@ -150,7 +207,7 @@ def dashboard(request):
     })
 
 @login_required
-@user_passes_test(is_gme_staff)
+@check_role_access
 def approve_staff(request, user_id):
     staff = get_object_or_404(User, id=user_id)
     
@@ -166,7 +223,7 @@ def approve_staff(request, user_id):
     return render(request, 'users/approve_staff.html', {'form': form, 'staff': staff})
 
 @login_required
-@user_passes_test(is_gme_staff)
+@check_role_access
 def manage_programs(request):
     programs = Program.objects.all()
     
@@ -182,7 +239,7 @@ def manage_programs(request):
     return render(request, 'users/manage_programs.html', {'form': form, 'programs': programs})
 
 @login_required
-@user_passes_test(is_gme_staff)
+@check_role_access
 def create_program(request):
     if request.method == 'POST':
         form = ProgramForm(request.POST)
@@ -196,7 +253,7 @@ def create_program(request):
     return render(request, 'users/create_program.html', {'form': form})
 
 @login_required
-@user_passes_test(is_gme_staff)
+@check_role_access
 def edit_program(request, program_id):
     program = get_object_or_404(Program, id=program_id)
     
@@ -212,7 +269,7 @@ def edit_program(request, program_id):
     return render(request, 'users/edit_program.html', {'form': form, 'program': program})
 
 @login_required
-@user_passes_test(is_gme_staff)
+@check_role_access
 def delete_program(request, program_id):
     program = get_object_or_404(Program, id=program_id)
     
@@ -224,7 +281,7 @@ def delete_program(request, program_id):
     return render(request, 'users/delete_program.html', {'program': program})
 
 @login_required
-@user_passes_test(is_gme_staff)
+@check_role_access
 def update_application_status(request, application_id):
     application = get_object_or_404(Application, id=application_id)
     
@@ -252,7 +309,7 @@ def update_application_status(request, application_id):
     })
 
 @login_required
-@user_passes_test(is_gme_staff)
+@check_role_access
 def bulk_update_status(request):
     if request.method == 'POST':
         application_ids = request.POST.getlist('application_ids')
@@ -320,7 +377,7 @@ def bulk_update_status(request):
     return redirect('dashboard')
 
 @login_required
-@user_passes_test(is_gme_staff)
+@check_role_access
 def upload_scores(request):
     if request.method == 'POST':
         form = BulkScoreUploadForm(request.POST, request.FILES)
@@ -391,7 +448,7 @@ def upload_scores(request):
     return render(request, 'users/upload_scores.html', {'form': form})
 
 @login_required
-@user_passes_test(is_gme_staff)
+@check_role_access
 def process_scores(request):
     # Get unprocessed scores
     unprocessed_scores = ApplicantScore.objects.filter(is_processed=False)
@@ -482,7 +539,7 @@ def process_scores(request):
     return redirect('dashboard')
 
 @login_required
-@user_passes_test(is_interviewer)
+@check_role_access
 def interviewer_dashboard(request):
     # Get the interviewer's program
     program = request.user.program
@@ -513,7 +570,7 @@ def interviewer_dashboard(request):
     })
 
 @login_required
-@user_passes_test(is_interviewer)
+@check_role_access
 def conduct_interview(request, application_id):
     application = get_object_or_404(Application, id=application_id)
     
@@ -621,7 +678,7 @@ def conduct_interview(request, application_id):
     })
 
 @login_required
-@user_passes_test(is_applicant)
+@check_role_access
 def applicant_dashboard(request):
     try:
         # Check if user has already applied
@@ -679,7 +736,7 @@ def applicant_dashboard(request):
         return redirect('home')
 
 @login_required
-@user_passes_test(is_applicant)
+@check_role_access
 def edit_application(request, application_id):
     # Get the application and verify it belongs to the user and is in DRAFT status
     application = get_object_or_404(
@@ -732,7 +789,7 @@ def edit_application(request, application_id):
     })
 
 @login_required
-@user_passes_test(is_applicant)
+@check_role_access
 def submit_draft(request, application_id):
     application = get_object_or_404(Application, id=application_id, applicant=request.user, status='DRAFT')
     
@@ -749,7 +806,7 @@ def load_programs(request):
     return JsonResponse(list(programs.values('id', 'name')), safe=False)
 
 @login_required
-@user_passes_test(is_gme_staff)
+@check_role_access
 def export_applications(request):
     # Get filtered applications
     filter_form = AdvancedFilterForm(request.GET or None)
@@ -849,7 +906,7 @@ def export_applications(request):
     return response
 
 @login_required
-@user_passes_test(is_program_director)
+@check_role_access
 def director_dashboard(request):
     # Get the director's program
     program = request.user.program
@@ -903,7 +960,7 @@ def director_dashboard(request):
     })
 
 @login_required
-@user_passes_test(is_program_director)
+@check_role_access
 def view_interview_results(request, application_id):
     application = get_object_or_404(Application, id=application_id)
     
@@ -925,7 +982,7 @@ def view_interview_results(request, application_id):
     })
 
 @login_required
-@user_passes_test(is_program_director)
+@check_role_access
 def submit_final_score(request, application_id):
     application = get_object_or_404(Application, id=application_id)
     
@@ -968,7 +1025,7 @@ def submit_final_score(request, application_id):
     return redirect('view_interview_results', application_id=application_id)
 
 @login_required
-@user_passes_test(is_gme_staff)
+@check_role_access
 def view_application(request, application_id):
     application = get_object_or_404(Application, id=application_id)
     

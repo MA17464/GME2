@@ -171,4 +171,4 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 media/documents/
-staticfiles/
+db.sqlite3

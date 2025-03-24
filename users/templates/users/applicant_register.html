@@ -10,7 +10,7 @@
                 <h3 class="mb-0">Applicant Registration</h3>
             </div>
             <div class="card-body">
-                <form method="post" novalidate>
+                <form method="post" novalidate enctype="multipart/form-data">
                     {% csrf_token %}
                     
                     <h4 class="mb-3">Account Information</h4>
@@ -64,6 +64,22 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
+                        </div>
+                    </div>
+                    
+                    <h4 class="mb-3 mt-4">Profile Picture</h4>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="id_profile_picture" class="form-label">Upload Profile Picture</label>
+                            <input type="file" name="profile_picture" class="form-control {% if form.profile_picture.errors %}is-invalid{% endif %}" id="id_profile_picture" accept=".jpg,.jpeg,.png">
+                            {% if form.profile_picture.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.profile_picture.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Optional. Upload a profile picture (JPG, JPEG, PNG, max 10MB)</div>
                         </div>
                     </div>
                     

@@ -20,6 +20,19 @@
                                     <h4 class="mb-0"><i class="fas fa-user me-2 text-primary"></i>Applicant Information</h4>
                                 </div>
                                 <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        {% if application.applicant.applicant_profile.profile_picture %}
+                                            <img src="{{ application.applicant.applicant_profile.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail rounded-circle me-3 profile-picture-thumbnail" style="width: 100px; height: 100px; object-fit: cover; cursor: pointer;">
+                                        {% else %}
+                                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white me-3" style="width: 100px; height: 100px;">
+                                                <i class="fas fa-user fa-3x"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <h5 class="mb-1">{{ application.applicant.applicant_profile.first_name_en }} {{ application.applicant.applicant_profile.last_name_en }}</h5>
+                                            <p class="text-muted mb-0">Applicant</p>
+                                        </div>
+                                    </div>
                                     <p><strong>Name:</strong> {{ application.applicant.username }}</p>
                                     <p><strong>University:</strong> {{ application.university_name }}</p>
                                     <p><strong>GPA:</strong> {{ application.get_gpa_display }}</p>
@@ -62,6 +75,11 @@
                                         <div class="alert alert-danger">
                                             <p class="mb-0"><strong>Status:</strong> Rejected</p>
                                             <p class="mb-0"><strong>Rejected on:</strong> {{ application.updated_at|date:"M d, Y H:i" }}</p>
+                                        </div>
+                                    {% elif application.status == 'WAIT_LISTED' %}
+                                        <div class="alert alert-warning">
+                                            <p class="mb-0"><strong>Status:</strong> Waitlisted</p>
+                                            <p class="mb-0"><strong>Waitlisted on:</strong> {{ application.updated_at|date:"M d, Y H:i" }}</p>
                                         </div>
                                     {% endif %}
                                 </div>
@@ -228,8 +246,8 @@
                                         <div class="col-md-4">
                                             <div class="form-group mb-3">
                                                 <label for="final_score" class="form-label">Final Score (0-100)</label>
-                                                <input type="number" name="final_score" id="final_score" class="form-control" min="0" max="100" step="0.01" required value="{% if application.final_score_submitted %}{{ application.final_score }}{% else %}{{ average_score|floatformat:2 }}{% endif %}">
-                                                <small class="form-text">{% if application.final_score_submitted %}Current final score{% else %}The average score is pre-filled, but you can adjust it if needed{% endif %}.</small>
+                                                <input type="number" name="final_score" id="final_score" class="form-control" readonly value="{% if application.final_score_submitted %}{{ application.final_score }}{% else %}{{ average_score|floatformat:2 }}{% endif %}">
+                                                <small class="form-text">The average score from all interviews.</small>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
@@ -239,6 +257,7 @@
                                                     <option value="">Choose a status...</option>
                                                     <option value="APPROVED" {% if application.status == 'APPROVED' %}selected{% endif %}>Approve Application</option>
                                                     <option value="REJECTED" {% if application.status == 'REJECTED' %}selected{% endif %}>Reject Application</option>
+                                                    <option value="WAIT_LISTED" {% if application.status == 'WAIT_LISTED' %}selected{% endif %}>Waitlist Application</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -267,4 +286,34 @@
         </div>
     </div>
 </div>
+
+<!-- Profile Picture Modal -->
+<div class="modal fade" id="profilePictureModal" tabindex="-1" aria-labelledby="profilePictureModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="profilePictureModalLabel">Applicant Profile Picture</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img src="" id="modalProfileImage" class="img-fluid rounded" alt="Profile Picture">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle profile picture clicks
+    document.querySelectorAll('.profile-picture-thumbnail').forEach(img => {
+      img.addEventListener('click', function() {
+        const modalImg = document.getElementById('modalProfileImage');
+        modalImg.src = this.src;
+        document.getElementById('profilePictureModalLabel').textContent = 'Profile Picture: ' + '{{ application.applicant.applicant_profile.first_name_en }} {{ application.applicant.applicant_profile.last_name_en }}';
+        const modal = new bootstrap.Modal(document.getElementById('profilePictureModal'));
+        modal.show();
+      });
+    });
+  });
+</script>
 {% endblock %} 

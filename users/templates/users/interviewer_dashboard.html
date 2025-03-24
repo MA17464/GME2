@@ -76,7 +76,18 @@
                             <tbody>
                                 {% for application in pending_applications %}
                                     <tr>
-                                        <td>{{ application.applicant.username }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if application.applicant.applicant_profile.profile_picture %}
+                                                    <img src="{{ application.applicant.applicant_profile.profile_picture.url }}" alt="Profile Picture" class="rounded-circle me-2 profile-picture-thumbnail" style="width: 40px; height: 40px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white me-2" style="width: 40px; height: 40px;">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                {% endif %}
+                                                {{ application.applicant.username }}
+                                            </div>
+                                        </td>
                                         <td>{{ application.university_name }}</td>
                                         <td>{{ application.get_gpa_display }}</td>
                                         <td>
@@ -132,7 +143,18 @@
                             <tbody>
                                 {% for application in interviewed_applications %}
                                     <tr>
-                                        <td>{{ application.applicant.username }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if application.applicant.applicant_profile.profile_picture %}
+                                                    <img src="{{ application.applicant.applicant_profile.profile_picture.url }}" alt="Profile Picture" class="rounded-circle me-2 profile-picture-thumbnail" style="width: 40px; height: 40px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white me-2" style="width: 40px; height: 40px;">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                {% endif %}
+                                                {{ application.applicant.username }}
+                                            </div>
+                                        </td>
                                         <td>{{ application.university_name }}</td>
                                         <td>{{ application.get_gpa_display }}</td>
                                         <td>
@@ -176,4 +198,34 @@
         </div>
     </div>
 </div>
+
+<!-- Profile Picture Modal -->
+<div class="modal fade" id="profilePictureModal" tabindex="-1" aria-labelledby="profilePictureModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="profilePictureModalLabel">Applicant Profile Picture</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img src="" id="modalProfileImage" class="img-fluid rounded" alt="Profile Picture">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle profile picture clicks
+    document.querySelectorAll('.profile-picture-thumbnail').forEach(img => {
+      img.addEventListener('click', function() {
+        const modalImg = document.getElementById('modalProfileImage');
+        modalImg.src = this.src;
+        document.getElementById('profilePictureModalLabel').textContent = this.alt;
+        const modal = new bootstrap.Modal(document.getElementById('profilePictureModal'));
+        modal.show();
+      });
+    });
+  });
+</script>
 {% endblock %} 

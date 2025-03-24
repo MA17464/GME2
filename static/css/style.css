@@ -690,13 +690,19 @@ main {
 }
 
 .status-invited {
-  background-color: #fff3cd;
-  color: #664d03;
+  background-color: var(--info-color);
+  color: white;
+}
+
+.status-waitlisted {
+  background-color: var(--warning-color);
+  color: var(--dark-color);
 }
 
 .status-draft {
-  background-color: #e2e3e5;
-  color: #41464b;
+  background-color: #f8f9fa;
+  color: var(--dark-color);
+  border: 1px solid #ced4da;
 }
 
 /* ===== PROGRAM LISTS ===== */

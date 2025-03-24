@@ -28,6 +28,22 @@ class User(AbstractUser):
     def __str__(self):
         return f"{self.username} ({self.get_user_type_display()})"
 
+def profile_picture_upload_path(instance, filename):
+    """
+    Generate a unique file path for profile pictures.
+    Format: profile_pictures/[username]_[uuid].[extension]
+    """
+    # Get the file extension
+    ext = filename.split('.')[-1]
+    # Generate a unique filename with username and uuid
+    if hasattr(instance, 'user'):
+        username = instance.user.username
+    else:
+        username = 'user'
+    filename = f"{username}_{uuid4().hex}.{ext}"
+    
+    return os.path.join('profile_pictures', filename)
+
 class Applicant(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='applicant_profile')
     first_name_en = models.CharField(max_length=50)
@@ -39,6 +55,7 @@ class Applicant(models.Model):
     third_name_ar = models.CharField(max_length=50)
     last_name_ar = models.CharField(max_length=50)
     national_id = models.CharField(max_length=20, unique=True)
+    profile_picture = models.ImageField(upload_to=profile_picture_upload_path, blank=True, null=True)
     
     def __str__(self):
         return f"{self.first_name_en} {self.last_name_en}"
@@ -89,6 +106,7 @@ class Application(models.Model):
         ('NOT_ELIGIBLE', 'Not Eligible'),
         ('APPROVED', 'Approved'),
         ('REJECTED', 'Rejected'),
+        ('WAIT_LISTED', 'Waitlisted'),
         ('INVITED_FOR_INTERVIEW', 'Invited for Interview'),
     )
     

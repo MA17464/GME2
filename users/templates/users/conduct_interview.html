@@ -15,6 +15,16 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-3">
+                        {% if application.applicant.applicant_profile.profile_picture %}
+                            <img src="{{ application.applicant.applicant_profile.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail rounded-circle me-3 profile-picture-thumbnail" style="width: 100px; height: 100px; object-fit: cover; cursor: pointer;">
+                        {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white me-3" style="width: 100px; height: 100px;">
+                                <i class="fas fa-user fa-3x"></i>
+                            </div>
+                        {% endif %}
+                        <h5 class="mb-0">{{ application.applicant.applicant_profile.first_name_en }} {{ application.applicant.applicant_profile.last_name_en }}</h5>
+                    </div>
                     <table class="table table-borderless">
                         <tr>
                             <th style="width: 40%">Full Name (English):</th>
@@ -570,5 +580,35 @@
         // Calculate initial scores
         calculateScores();
     });
+</script>
+
+<!-- Profile Picture Modal -->
+<div class="modal fade" id="profilePictureModal" tabindex="-1" aria-labelledby="profilePictureModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="profilePictureModalLabel">Applicant Profile Picture</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img src="" id="modalProfileImage" class="img-fluid rounded" alt="Profile Picture">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle profile picture clicks
+    document.querySelectorAll('.profile-picture-thumbnail').forEach(img => {
+      img.addEventListener('click', function() {
+        const modalImg = document.getElementById('modalProfileImage');
+        modalImg.src = this.src;
+        document.getElementById('profilePictureModalLabel').textContent = 'Profile Picture: ' + '{{ application.applicant.applicant_profile.first_name_en }} {{ application.applicant.applicant_profile.last_name_en }}';
+        const modal = new bootstrap.Modal(document.getElementById('profilePictureModal'));
+        modal.show();
+      });
+    });
+  });
 </script>
 {% endblock %} 

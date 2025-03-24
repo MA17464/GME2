@@ -3,6 +3,7 @@
 .
 ├── README.md
 ├── current_structure.md
+├── db.sqlite3
 ├── gme
 │   ├── __init__.py
 │   ├── __pycache__
@@ -14,11 +15,8 @@
 ├── media
 ├── requirements.txt
 ├── static
-│   ├── css
-│   │   └── style.css
-│   └── images
-│       ├── Cover.svg
-│       └── khcc-logo.png
+│   └── css
+│       └── style.css
 └── users
     ├── __init__.py
     ├── __pycache__
@@ -55,7 +53,6 @@
     │       ├── delete_program.html
     │       ├── director_dashboard.html
     │       ├── edit_program.html
-    │       ├── error.html
     │       ├── home.html
     │       ├── interviewer_dashboard.html
     │       ├── login.html

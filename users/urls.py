@@ -36,6 +36,7 @@ urlpatterns = [
 
     # Program Director URLs
     path('director/dashboard/', views.director_dashboard, name='director_dashboard'),
+    path('director/bulk-update/', views.director_bulk_update, name='director_bulk_update'),
     path('director/interview-results/<int:application_id>/', views.view_interview_results, name='view_interview_results'),
     path('director/submit-final-score/<int:application_id>/', views.submit_final_score, name='submit_final_score'),
     path('update-application-status/<int:application_id>/', views.update_application_status, name='update_application_status'),

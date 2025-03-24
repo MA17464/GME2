@@ -57,10 +57,23 @@ class ApplicantRegistrationForm(UserCreationForm):
     last_name_ar = forms.CharField(max_length=50)
     national_id = forms.CharField(max_length=20)
     phone_number = forms.CharField(max_length=15)
+    profile_picture = forms.ImageField(required=False)
     
     class Meta:
         model = User
         fields = ('username', 'email', 'password1', 'password2', 'phone_number')
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add file validation to profile picture field
+        self.fields['profile_picture'].validators = [
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png']),
+            validate_file_size
+        ]
+        self.fields['profile_picture'].widget.attrs.update({
+            'class': 'form-control',
+            'accept': '.jpg,.jpeg,.png'
+        })
         
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -78,7 +91,8 @@ class ApplicantRegistrationForm(UserCreationForm):
                 second_name_ar=self.cleaned_data['second_name_ar'],
                 third_name_ar=self.cleaned_data['third_name_ar'],
                 last_name_ar=self.cleaned_data['last_name_ar'],
-                national_id=self.cleaned_data['national_id']
+                national_id=self.cleaned_data['national_id'],
+                profile_picture=self.cleaned_data.get('profile_picture')
             )
         
         return user

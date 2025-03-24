@@ -88,7 +88,7 @@ def staff_register(request):
 
 def applicant_register(request):
     if request.method == 'POST':
-        form = ApplicantRegistrationForm(request.POST)
+        form = ApplicantRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
             messages.success(request, 'Registration successful! You can now login.')
@@ -187,6 +187,7 @@ def check_role_access(view_func):
             'conduct_interview': ['INTERVIEWER', 'PROGRAM_DIRECTOR'],
             'view_interview_results': ['PROGRAM_DIRECTOR'],
             'submit_final_score': ['PROGRAM_DIRECTOR'],
+            'director_bulk_update': ['PROGRAM_DIRECTOR'],
             'view_application': ['GME_STAFF'],
             'edit_program': ['GME_STAFF'],
             'delete_program': ['GME_STAFF'],
@@ -988,6 +989,9 @@ def director_dashboard(request):
         'interviews__interviewer'
     )
     
+    # Get sort direction from query parameters
+    sort_direction = request.GET.get('sort', 'desc')  # Default to descending
+    
     # Process each application to calculate interview counts and scores
     for application in applications:
         # Calculate interview count (excluding GME staff)
@@ -1005,22 +1009,24 @@ def director_dashboard(request):
         else:
             application.average_score = None
     
-    # Get interviews conducted by this director
-    conducted_interviews = Interview.objects.filter(
-        interviewer=request.user,
-        application__in=applications
-    )
-    conducted_application_ids = conducted_interviews.values_list('application_id', flat=True)
+    # Split applications based on final score submission rather than interview status
+    interviewed_applications = [app for app in applications if app.final_score_submitted]
+    pending_applications = [app for app in applications if not app.final_score_submitted]
     
-    # Separate applications into those already interviewed by this director and those pending
-    interviewed_applications = [app for app in applications if app.id in conducted_application_ids]
-    pending_applications = [app for app in applications if app.id not in conducted_application_ids]
+    # Sort applications by average score
+    if sort_direction == 'asc':
+        pending_applications.sort(key=lambda x: x.average_score if x.average_score is not None else -1)
+        interviewed_applications.sort(key=lambda x: x.average_score if x.average_score is not None else -1)
+    else:  # desc
+        pending_applications.sort(key=lambda x: x.average_score if x.average_score is not None else -1, reverse=True)
+        interviewed_applications.sort(key=lambda x: x.average_score if x.average_score is not None else -1, reverse=True)
     
     return render(request, 'users/director_dashboard.html', {
         'program': program,
         'pending_applications': pending_applications,
         'interviewed_applications': interviewed_applications,
-        'applications': applications
+        'applications': applications,
+        'current_sort': sort_direction
     })
 
 @login_required
@@ -1057,30 +1063,33 @@ def submit_final_score(request, application_id):
     
     # Check if there are any interviews for this application
     if not application.interviews.exists():
-        messages.error(request, 'Cannot submit final score as no interviews have been conducted yet.')
+        messages.error(request, 'Cannot update status as no interviews have been conducted yet.')
         return redirect('view_interview_results', application_id=application_id)
     
     if request.method == 'POST':
         try:
-            final_score = float(request.POST.get('final_score'))
+            # Get the average score automatically
+            final_score = application.get_average_score()
             notes = request.POST.get('notes', '')
             status = request.POST.get('status')
             
-            if 0 <= final_score <= 100:
-                if status in ['APPROVED', 'REJECTED']:
-                    # Submit final score and update status in one step
-                    application.submit_final_score(final_score, notes)
-                    application.status = status
-                    application.save()
-                    
-                    messages.success(request, f'Final score submitted and application {status.lower()}.')
-                    return redirect('view_interview_results', application_id=application_id)
-                else:
-                    messages.error(request, 'Please select a valid status (Approved or Rejected).')
+            if status in ['APPROVED', 'REJECTED', 'WAIT_LISTED']:
+                # Submit final score and update status in one step
+                application.submit_final_score(final_score, notes)
+                application.status = status
+                application.save()
+                
+                # Convert WAIT_LISTED to Waitlisted with no space
+                status_display = status.replace('_', ' ').title()
+                if status == 'WAIT_LISTED':
+                    status_display = 'Waitlisted'
+                
+                messages.success(request, f'Application status updated to {status_display}.')
+                return redirect('view_interview_results', application_id=application_id)
             else:
-                messages.error(request, 'Final score must be between 0 and 100.')
+                messages.error(request, 'Please select a valid status (Approved, Rejected, or Waitlisted).')
         except (ValueError, TypeError):
-            messages.error(request, 'Please enter a valid score.')
+            messages.error(request, 'An error occurred while updating the application status.')
     
     return redirect('view_interview_results', application_id=application_id)
 
@@ -1136,3 +1145,57 @@ def download_application_file(request, application_id, file_type):
     except Exception as e:
         logger.error(f"Error downloading file: {str(e)}")
         raise Http404("Error accessing file")
+
+@login_required
+@check_role_access
+def director_bulk_update(request):
+    if request.method == 'POST':
+        application_ids = request.POST.getlist('application_ids')
+        new_status = request.POST.get('new_status')
+        
+        # Validate that at least one application is selected
+        if not application_ids:
+            messages.error(request, 'Please select at least one application.')
+            return redirect('director_dashboard')
+            
+        # Validate new status
+        if new_status not in ['APPROVED', 'REJECTED', 'WAIT_LISTED']:
+            messages.error(request, 'Invalid status selected.')
+            return redirect('director_dashboard')
+        
+        try:
+            # Get the program associated with the director
+            program = Program.objects.get(director=request.user)
+            
+            # Get applications that belong to the director's program
+            applications = Application.objects.filter(
+                id__in=application_ids,
+                program=program
+            )
+            
+            if not applications.exists():
+                messages.error(request, 'No eligible applications found.')
+                return redirect('director_dashboard')
+                
+            updated_count = 0
+            for application in applications:
+                # Only update if the application is in INVITED_FOR_INTERVIEW status
+                if application.status == 'INVITED_FOR_INTERVIEW':
+                    application.status = new_status
+                    application.final_score_submitted = True
+                    application.save()
+                    updated_count += 1
+            
+            if updated_count == 0:
+                messages.warning(request, 'No applications were updated. Ensure applications have been interviewed.')
+            elif updated_count == 1:
+                messages.success(request, f'1 application was updated to {dict(Application.STATUS_CHOICES)[new_status]}.')
+            else:
+                messages.success(request, f'{updated_count} applications were updated to {dict(Application.STATUS_CHOICES)[new_status]}.')
+                
+        except Program.DoesNotExist:
+            messages.error(request, 'You are not assigned to any program.')
+        except Exception as e:
+            messages.error(request, f'An error occurred: {str(e)}')
+            
+    return redirect('director_dashboard')

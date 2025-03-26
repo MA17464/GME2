@@ -26,14 +26,15 @@ SECRET_KEY = 'django-insecure-4##o^-dy&3z3@a_(dh*@2x$54f^(l3lwnpnwpjgeu_3&$4gka(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1','https://khcc-gme.azurewebsites.net','http://khcc-gme.azurewebsites.net','www.khcc-gme.azurewebsites.net']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','https://khcc-gme.azurewebsites.net','http://khcc-gme.azurewebsites.net','www.khcc-gme.azurewebsites.net','khcc-gme.azurewebsites.net']
 
 # CSRF Settings
 CSRF_TRUSTED_ORIGINS = [
     'https://khcc-gme.azurewebsites.net',
     'http://khcc-gme.azurewebsites.net',
     'https://www.khcc-gme.azurewebsites.net',
-    'http://www.khcc-gme.azurewebsites.net'
+    'http://www.khcc-gme.azurewebsites.net',
+    'khcc-gme.azurewebsites.net'
 ]
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True

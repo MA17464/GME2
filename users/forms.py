@@ -72,8 +72,14 @@ class ApplicantRegistrationForm(UserCreationForm):
         ]
         self.fields['profile_picture'].widget.attrs.update({
             'class': 'form-control',
-            'accept': '.jpg,.jpeg,.png'
+            'accept': '.jpg,.jpeg,.png,.jfif'
         })
+    
+    def clean_national_id(self):
+        national_id = self.cleaned_data.get('national_id')
+        if Applicant.objects.filter(national_id=national_id).exists():
+            raise forms.ValidationError("An applicant with this National ID already exists. Please contact support if you need assistance.")
+        return national_id
         
     def save(self, commit=True):
         user = super().save(commit=False)
